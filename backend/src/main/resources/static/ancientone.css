@@ -1,0 +1,83 @@
+/* Ancient One Popup */
+#ancient-one-popup {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 900px;
+    background-color: transparent; /* Transparent background */
+    border: none; /* Remove border */
+    box-shadow: none; /* Remove box shadow */
+    z-index: 1000;
+}
+
+#ancient-one-popup .popup-content {
+    display: flex;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background for content */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to content */
+}
+
+/* Left Div: List of Ancient One Names */
+.ancient-one-list {
+    width: 10%;
+    border-right: 1px solid #ccc;
+    padding-right: 20px;
+}
+
+.ancient-one-list div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    color: #333; /* Darker color for names */
+    font-weight: bold; /* Optional: Make the text bold */
+}
+
+.ancient-one-list div:hover {
+    background-color: #f0f0f0;
+}
+
+/* Right Div: Ancient One Details */
+.ancient-one-details {
+    width: 90%;
+    padding-left: 20px;
+}
+.image-container {
+    display: flex;
+    justify-content: space-between; /* Adjust as needed */
+    align-items: flex-start; /* Align items at the top */
+}
+
+.image-with-caption {
+    text-align: center; /* Center the caption and image */
+    margin-right: 10px; /* Add spacing between image groups */
+}
+
+.image-with-caption:last-child {
+    margin-right: 0; /* Remove margin for the last image */
+}
+
+.caption {
+    font-size: 16px; /* Adjust caption font size */
+    font-weight: bold; /* Make the caption bold */
+    margin-bottom: 5px; /* Add spacing between caption and image */
+    color: #333;
+}
+
+.full-size-image {
+    width: auto; /* Let the image use its natural width */
+    height: auto; /* Let the image use its natural height */
+    max-width: 100%; /* Ensure the image doesn't overflow its container */
+}
+.ancient-one-image {
+    max-width: 100%; /* Ensure images don't exceed their container */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 10px;
+}
+
+.ancient-one-description {
+    font-size: 14px;
+    color: #333; /* Darker color for description */
+}

@@ -1,0 +1,66 @@
+/* Popup Container */
+.popup {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 900px;
+    height: 900px;
+    background-color: transparent; /* Transparent background */
+    border: none; /* Remove border */
+    box-shadow: none; /* Remove box shadow */
+    z-index: 1000;
+}
+
+/* Popup Content */
+.popup-content {
+    display: flex;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white background for content */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to content */
+}
+
+/* Left Div: List of Investigator Names */
+.investigator-list {
+    width: 30%;
+    border-right: 1px solid #ccc;
+    padding-right: 20px;
+}
+
+.investigator-list div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    color: #333; /* Darker color for investigator names */
+    font-weight: bold; /* Optional: Make the text bold */
+}
+
+.investigator-list div:hover {
+    background-color: #f0f0f0;
+}
+
+/* Right Div: Investigator Details */
+.investigator-details {
+    width: 70%;
+    padding-left: 20px;
+}
+
+/* Investigator Images */
+.investigator-image {
+    max-width: 100%; /* Ensure images don't exceed their container */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 10px;
+}
+
+/* Optional: Set a fixed width or height for the images */
+.investigator-image2 {
+    width: 200px; /* Adjust based on your image size */
+    height: auto; /* Maintain aspect ratio */
+}
+
+.investigator-description {
+    font-size: 14px;
+    color: #333; /* Darker color for description */
+}

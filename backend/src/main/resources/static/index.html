@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldritch Horror Prototype</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="investigator.css">
+    <link rel="stylesheet" href="ancientone.css">
+    <!-- SockJS -->
+    <script src="js/sockjs.min.js"></script>
+    <!-- STOMP (for WebSocket messaging) -->
+    <script src="js/stomp.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <!-- Left Panel for Controls -->
+    <div class="control-panel">
+        <h1>Eldritch Horror</h1>
+        <button onclick="setupGame()">Setup Game</button>
+        <button onclick="changeOmen()">Change Omen</button>
+        <button onclick="triggerReckoning()">Trigger Reckoning</button>
+        <button onclick="drawMythos()">Draw Mythos</button>
+        <button  onclick="populateAncientOnes()" id="select-ancient-one-btn">Select Ancient One</button>
+        <button  onclick="populateInvestigators()" id="select-investigator-btn">Select Investigator</button>
+        <button onclick="showCreateGamePopup()" id="create-game-btn">Create Game</button> <!-- New Button -->
+        <button onclick="showJoinGamePopup()" id="join-game-btn">Join Game</button> <!-- New Button -->
+        <button onclick="leaveGame()" id="leave-game-btn">Leave Game</button> <!-- New Button -->
+        <!-- Lobby Panel -->
+        <div id="lobby-panel" class="lobby-panel">
+            <h2>Lobby: <span id="lobby-game-name">Unnamed</span></h2>
+            <div id="lobby-ancient-one">
+                <strong>Ancient One:</strong> <span id="selected-ancient-one">Not Selected</span>
+            </div>
+            <div id="lobby-players">
+                <strong>Players:</strong>
+                <ul id="player-list">
+                    <!-- List of players will be populated here -->
+                </ul>
+            </div>
+        </div>
+        <div id="game-session" class="game-session"></div>
+    </div>
+
+    <!-- Static Layer (Non-draggable elements) -->
+    <div class="static-layer">
+        <!-- Assets Rectangle -->
+        <img src="assets/assets-rectangle.png" alt="Assets Rectangle" class="assets-rectangle">
+        <!-- Doom Bar -->
+        <img src="assets/doom-bar.png" alt="Doom Bar" class="doom-bar">
+        <!-- Black Frame Overlay -->
+        <img src="assets/doom-progress.png" alt="Current Doom" class="doom-progress" id="doom-progress">
+        <!-- Omen Circle -->
+        <img src="assets/omen-circle.png" alt="Omen Circle" class="omen-circle">
+    </div>
+
+    <!-- Game Field Container -->
+    <div class="game-field-container" id="game-field-container">
+        <!-- Draggable Layer (Background) -->
+        <div class="draggable-layer">
+            <img src="assets/game-field.png" alt="Game Field" class="game-field" id="game-field">
+            <canvas id="game-canvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Popup Container -->
+<div id="investigator-popup" class="popup">
+    <div class="popup-content">
+        <!-- Left Div: List of Investigator Names -->
+        <div id="investigator-list" class="investigator-list"></div>
+        <!-- Right Div: Investigator Details -->
+        <div id="investigator-details" class="investigator-details">
+            <img id="investigator-image1" src="" alt="Investigator Image 1" class="investigator-image">
+            <img id="investigator-image2" src="" alt="Investigator Image 2" class="investigator-image">
+            <p id="investigator-description" class="investigator-description"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Ancient One Popup -->
+<div id="ancient-one-popup" class="popup">
+    <div class="popup-content">
+        <!-- Left Div: List of Ancient One Names -->
+        <div id="ancient-one-list" class="ancient-one-list"></div>
+        <!-- Right Div: Ancient One Details -->
+        <div id="ancient-one-details" class="ancient-one-details">
+            <div class="image-container">
+                <div class="image-with-caption">
+                    <p class="caption">Your start conditions</p>
+                    <img id="ancient-one-image1" src="" alt="Ancient One Image 1" class="ancient-one-image">
+                </div>
+                <div class="image-with-caption">
+                    <p class="caption">In case you are failed...</p>
+                    <img id="ancient-one-image2" src="" alt="Ancient One Image 2" class="ancient-one-image">
+                </div>
+            </div>
+            <p id="ancient-one-description" class="ancient-one-description"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Create Game Popup -->
+<div id="create-game-popup" class="popup">
+    <div class="popup-content">
+        <h2>Create Game</h2>
+        <input type="text" id="game-name" placeholder="Enter Game Name">
+        <button  onclick="createGameSession()" id="create-game-submit">Create</button>
+        <button   onclick="hidePopups()" id="create-game-cancel">Cancel</button>
+    </div>
+</div>
+
+<!-- Join Game Popup -->
+<div id="join-game-popup" class="popup">
+    <div class="popup-content">
+        <h2>Join Game</h2>
+        <div class="game-list" id="game-list">
+            <!-- List of available games will be populated here -->
+        </div>
+        <button id="join-game-cancel">Cancel</button>
+    </div>
+</div>
+
+<!-- Overlay for popups -->
+<div id="overlay" class="overlay"></div>
+
+<script src="control_panel.js"></script>
+<script src="session.js"></script>
+<script src="gamefield.js"></script>
+<script src="ancientone.js"></script>
+<script src="investigator.js"></script>
+<script src="doombar.js"></script>
+</body>
+</html>
