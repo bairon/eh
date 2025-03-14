@@ -2,47 +2,47 @@
 let isDragging = false;
 let startX, startY, scrollLeft, scrollTop;
 
-const gameFieldContainer = document.getElementById('game-field-container');
-const draggableLayer = document.querySelector('.draggable-layer');
+const $gameFieldContainer = $('#game-field-container');
+const $draggableLayer = $('.draggable-layer');
 
-draggableLayer.addEventListener('mousedown', (e) => {
+$draggableLayer.on('mousedown', (e) => {
     // Only start dragging if the left mouse button is pressed
     if (e.button === 0) { // 0 = left button
         isDragging = true;
-        startX = e.pageX - draggableLayer.offsetLeft;
-        startY = e.pageY - draggableLayer.offsetTop;
-        scrollLeft = gameFieldContainer.scrollLeft;
-        scrollTop = gameFieldContainer.scrollTop;
+        startX = e.pageX - $draggableLayer.offset().left;
+        startY = e.pageY - $draggableLayer.offset().top;
+        scrollLeft = $gameFieldContainer.scrollLeft();
+        scrollTop = $gameFieldContainer.scrollTop();
 
         // Prevent default behavior (e.g., text selection, drag-and-drop)
         e.preventDefault();
     }
 });
 
-draggableLayer.addEventListener('mouseup', () => {
+$draggableLayer.on('mouseup', () => {
     isDragging = false;
 });
 
-draggableLayer.addEventListener('mouseleave', () => {
+$draggableLayer.on('mouseleave', () => {
     isDragging = false;
 });
 
-draggableLayer.addEventListener('mousemove', (e) => {
+$draggableLayer.on('mousemove', (e) => {
     if (!isDragging) return;
 
     // Prevent default behavior (e.g., text selection, drag-and-drop)
     e.preventDefault();
 
-    const x = e.pageX - draggableLayer.offsetLeft;
-    const y = e.pageY - draggableLayer.offsetTop;
+    const x = e.pageX - $draggableLayer.offset().left;
+    const y = e.pageY - $draggableLayer.offset().top;
     const walkX = (x - startX) * 2; // Adjust sensitivity
     const walkY = (y - startY) * 2; // Adjust sensitivity
-    gameFieldContainer.scrollLeft = scrollLeft - walkX;
-    gameFieldContainer.scrollTop = scrollTop - walkY;
+    $gameFieldContainer.scrollLeft(scrollLeft - walkX);
+    $gameFieldContainer.scrollTop(scrollTop - walkY);
 });
 
 // Prevent text selection while dragging
-document.addEventListener('selectstart', (e) => {
+$(document).on('selectstart', (e) => {
     if (isDragging) {
         e.preventDefault();
     }

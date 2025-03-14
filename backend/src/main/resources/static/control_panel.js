@@ -1,77 +1,54 @@
-
-//const canvas = document.getElementById('game-canvas');
-//const ctx = canvas.getContext('2d');
-
-// Game Logic (same as before)
-function log(message) {
-    const gameOutput = document.getElementById('game-output');
-    const p = document.createElement('p');
-    p.textContent = message;
-    gameOutput.appendChild(p);
-    gameOutput.scrollTop = gameOutput.scrollHeight;
+function showCreateGamePopup() {
+    $('#create-game-popup').show();
+    $('#overlay').show();
 }
 
-async function setupGame() {
-    log('Game setup complete.');
-}
-
-async function changeOmen() {
-    log('Omen changed!');
-}
-
-async function triggerReckoning() {
-    log('Reckoning triggered!');
-}
-
-async function drawMythos() {
-    log('Mythos card drawn!');
-}
-
-async function showCreateGamePopup() {
-    document.getElementById('create-game-popup').style.display = 'block';
-    document.getElementById('overlay').style.display = 'block';
-}
-async function showJoinGamePopup() {
-    document.getElementById('join-game-popup').style.display = 'block';
-    document.getElementById('overlay').style.display = 'block';
+function showJoinGamePopup() {
+    $('#join-game-popup').show();
+    $('#overlay').show();
     fetchAvailableGames(); // Fetch available games from the server
-}
-// Hide Popups
-function hidePopups() {
-    document.getElementById('create-game-popup').style.display = 'none';
-    document.getElementById('join-game-popup').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
 }
 
 
 // Function to update the Lobby Panel
 function updateLobbyPanel(gameSession) {
-    const lobbyPanel = document.getElementById('lobby-panel');
+    const $lobbyPanel = $('#lobby-panel');
     if (gameSession === undefined || gameSession.gameStatus !== 'LOBBY') {
-        lobbyPanel.style.display = 'none';
+        $lobbyPanel.hide();
     } else {
-        lobbyPanel.style.display = 'block';
-        const gameNameElement = document.getElementById('game-name');
-        const selectedAncientOne = document.getElementById('selected-ancient-one');
-        const playerList = document.getElementById('player-list');
+        $lobbyPanel.show();
+        const $gameNameElement = $('#game-name');
+        const $selectedAncientOne = $('#selected-ancient-one');
+        const $playerList = $('#player-list');
 
         // Update the game name
-        gameNameElement.textContent = gameSession.gameName;
+        $gameNameElement.text(gameSession.gameName);
 
         // Update the selected Ancient One
         if (gameSession.gameState.ancientOne) {
-            selectedAncientOne.textContent = gameSession.gameState.ancientOne.name;
+            $selectedAncientOne.text(gameSession.gameState.ancientOne.name);
         } else {
-            selectedAncientOne.textContent = 'N/A';
+            $selectedAncientOne.text('N/A');
         }
 
         // Update the list of players
-        playerList.innerHTML = ''; // Clear the list
+        $playerList.empty(); // Clear the list
         gameSession.players.forEach(player => {
-            const li = document.createElement('li');
-            li.textContent = `${player.name} (${player.investigatorName || 'N/A'})`;
-            playerList.appendChild(li);
+            const $li = $('<li>').text(`${player.name} (${player.investigatorName || 'N/A'})`);
+            $playerList.append($li);
         });
     }
+}
+
+// Hide Popups
+function hidePopups() {
+    $('#create-game-popup').hide();
+    $('#join-game-popup').hide();
+    $('#overlay').hide();
+}
+function log(message) {
+    const $gameOutput = $('#game-output');
+    $gameOutput.append($('<p>').text(message));
+    $gameOutput.scrollTop($gameOutput[0].scrollHeight);
 }
 

@@ -7,9 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="investigator.css">
     <link rel="stylesheet" href="ancientone.css">
-    <!-- SockJS -->
+    <script src="js/jquery-3.6.0.min.js"></script>
     <script src="js/sockjs.min.js"></script>
-    <!-- STOMP (for WebSocket messaging) -->
     <script src="js/stomp.min.js"></script>
 </head>
 <body>
@@ -17,14 +16,11 @@
     <!-- Left Panel for Controls -->
     <div class="control-panel">
         <h1>Eldritch Horror</h1>
-        <button onclick="setupGame()">Setup Game</button>
-        <button onclick="changeOmen()">Change Omen</button>
-        <button onclick="triggerReckoning()">Trigger Reckoning</button>
-        <button onclick="drawMythos()">Draw Mythos</button>
-        <button  onclick="populateAncientOnes()" id="select-ancient-one-btn">Select Ancient One</button>
-        <button  onclick="populateInvestigators()" id="select-investigator-btn">Select Investigator</button>
         <button onclick="showCreateGamePopup()" id="create-game-btn">Create Game</button> <!-- New Button -->
         <button onclick="showJoinGamePopup()" id="join-game-btn">Join Game</button> <!-- New Button -->
+        <button  onclick="populateAncientOnes()" id="select-ancient-one-btn">Select Ancient One</button>
+        <button  onclick="populateInvestigators()" id="select-investigator-btn">Select Investigator</button>
+        <button onclick="startGame()" id="start-game-btn">Start Game</button> <!-- New Button -->
         <button onclick="leaveGame()" id="leave-game-btn">Leave Game</button> <!-- New Button -->
         <!-- Lobby Panel -->
         <div id="lobby-panel" class="lobby-panel">

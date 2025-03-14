@@ -9,66 +9,63 @@ function updateGame(session) {
             connectToWebSocket(gameSession.sessionId);
         }
     }
-    const sessionLog = document.getElementById('game-session');
+    const $sessionLog = $('#game-session');
     if (gameSession === undefined) {
-        sessionLog.innerText = '';
+        $sessionLog.text('');
     } else {
-        sessionLog.innerText = JSON.stringify(gameSession);
+        $sessionLog.text(JSON.stringify(gameSession));
     }
     updateLobbyPanel(gameSession);
 }
 
 // Check and start a game session on page load
-window.addEventListener('load', checkGame);
+$(window).on('load', checkGame);
 
 async function checkGame() {
-    const response = await fetch('/api/game/check')
-    if (!response.ok) {
-        alert(await response.text());
-    } else {
-        try {
-            let json = await response.json();
-            updateGame(json);
-        } catch (error) {
-            console.log("No active game found.");
-            updateGame();
-        }
+    try {
+        const response = await $.ajax({
+            url: '/api/game/check',
+            method: 'GET',
+        });
+        updateGame(response);
+    } catch (error) {
+        console.log("No active game found.");
+        updateGame();
     }
 }
+
 // Handle Join Game Selection
 async function joinGame(sessionId) {
     const playerName = prompt('Enter your name:'); // Prompt for player name
     if (playerName) {
-        const response = await fetch('/api/game/join', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({playerName: playerName, sessionId: sessionId})
-        });
-        if (!response.ok) {
-            alert(await response.text());
-        } else {
-            updateGame(await response.json());
+        try {
+            const response = await $.ajax({
+                url: '/api/game/join',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({playerName, sessionId}),
+            });
+            updateGame(response);
+        } catch (error) {
+            alert(error.responseText);
         }
     }
     hidePopups();
 }
 
-
 // Fetch Available Games
 async function fetchAvailableGames() {
     try {
-        const response = await fetch('/api/game/list');
-        const games = await response.json();
-        const gameList = document.getElementById('game-list');
-        gameList.innerHTML = ''; // Clear the list
+        const games = await $.ajax({
+            url: '/api/game/list',
+            method: 'GET',
+        });
+        const $gameList = $('#game-list');
+        $gameList.empty(); // Clear the list
         games.forEach(game => {
-            const gameItem = document.createElement('div');
-            gameItem.className = 'game-item';
-            gameItem.textContent = game.gameName;
-            gameItem.addEventListener('click', () => joinGame(game.sessionId));
-            gameList.appendChild(gameItem);
+            const $gameItem = $('<div>').addClass('game-item').text(game.gameName)
+                .on('click', () => joinGame(game.sessionId));
+            $gameList.append($gameItem);
         });
     } catch (error) {
         console.error(error);
@@ -80,19 +77,18 @@ async function fetchAvailableGames() {
 async function createGameSession() {
     const playerName = prompt('Enter your name:'); // Prompt for player name
     if (playerName) {
-        const gameName = document.getElementById('game-name').value.trim();
+        const gameName = $('#game-name').val().trim();
         if (gameName) {
-            const response = await fetch('/api/game/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({gameName: gameName, playerName: playerName}),
-            });
-            if (!response.ok) {
-                prompt(await response.text());
-            } else {
-                updateGame(await response.json());
+            try {
+                const response = await $.ajax({
+                    url: '/api/game/create',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({gameName, playerName}),
+                });
+                updateGame(response);
+            } catch (error) {
+                alert(error.responseText);
             }
         }
     }
@@ -101,19 +97,24 @@ async function createGameSession() {
 
 async function leaveGame() {
     if (confirm('Are you sure to Leave Game?')) {
-        const response = await fetch('/api/game/leave', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        if (!response.ok) {
-            alert(await response.text());
-        } else {
+        try {
+            await $.ajax({
+                url: '/api/game/leave',
+                method: 'POST',
+            });
             updateGame();
+        } catch (error) {
+            alert(error.responseText);
         }
     }
     hidePopups();
+}
+
+async function startGame() {
+    await $.ajax({
+        url: '/api/game/start',
+        method: 'POST',
+    });
 }
 
 // Function to connect to the WebSocket server
@@ -122,7 +123,7 @@ function connectToWebSocket(sessionId) {
     const stompClient = Stomp.over(socket);
 
     stompClient.connect({}, function (frame) {
-        console.log('Connected: ' + frame)
+        console.log('Connected: ' + frame);
         connected = true;
         // Subscribe to the game state updates for this session
         stompClient.subscribe(`/topic/gameSession/${sessionId}`, function (message) {

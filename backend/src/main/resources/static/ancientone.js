@@ -1,12 +1,11 @@
 // Fetch Ancient Ones from the Server
 async function fetchAncientOnes() {
     try {
-        const response = await fetch('/api/ancient-one/list');
-        if (!response.ok) {
-            throw new Error('Failed to fetch Ancient Ones');
-        }
-        const ancientOnes = await response.json();
-        return ancientOnes;
+        const response = await $.ajax({
+            url: '/api/ancient-one/list',
+            method: 'GET',
+        });
+        return response;
     } catch (error) {
         console.error('Error fetching Ancient Ones:', error);
         return [];
@@ -15,9 +14,9 @@ async function fetchAncientOnes() {
 
 // Display Ancient One Details
 function displayAncientOneDetails(ancientOne) {
-    document.getElementById('ancient-one-image1').src = ancientOne.image1;
-    document.getElementById('ancient-one-image2').src = ancientOne.image2;
-    document.getElementById('ancient-one-description').textContent = ancientOne.description;
+    $('#ancient-one-image1').attr('src', ancientOne.image1);
+    $('#ancient-one-image2').attr('src', ancientOne.image2);
+    $('#ancient-one-description').text(ancientOne.description);
 }
 
 // Show the Popup and Populate Ancient Ones
@@ -32,61 +31,41 @@ async function populateAncientOnes() {
 
 // Show the Popup
 function showAncientOnePopup(ancientOnes) {
-    const popup = document.getElementById('ancient-one-popup');
-    const ancientOneList = document.getElementById('ancient-one-list');
+    const $popup = $('#ancient-one-popup');
+    const $ancientOneList = $('#ancient-one-list');
 
     // Clear the list
-    ancientOneList.innerHTML = '';
+    $ancientOneList.empty();
 
     // Add each Ancient One to the list
     ancientOnes.forEach((ancientOne) => {
-        const div = document.createElement('div');
-        div.textContent = ancientOne.name;
-        div.addEventListener('mouseover', () => displayAncientOneDetails(ancientOne));
-        div.addEventListener('click', () => selectAncientOne(ancientOne));
-        ancientOneList.appendChild(div);
+        const $div = $('<div>').text(ancientOne.name)
+            .on('mouseover', () => displayAncientOneDetails(ancientOne))
+            .on('click', () => selectAncientOne(ancientOne));
+        $ancientOneList.append($div);
     });
 
     // Show the popup
-    popup.style.display = 'block';
+    $popup.show();
 }
 
 // Handle Ancient One Selection
-function selectAncientOne(ancientOne) {
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) {
-        console.error('No game session found.');
-        return;
-    }
-
+async function selectAncientOne(ancientOne) {
     // Submit the selected Ancient One to the server
-    fetch('/api/ancient-one/select', {
+    await $.ajax({
+        url: '/api/ancient-one/select',
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionId, name: ancientOne.name }),
-    })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Failed to select Ancient One');
-            }
-            // Close the popup
-            document.getElementById('ancient-one-popup').style.display = 'none';
-            log(`Selected Ancient One: ${ancientOne.name}`);
-        })
-        .catch((error) => {
-            console.error('Error selecting Ancient One:', error);
-        });
+        contentType: 'application/json',
+        data: JSON.stringify({name: ancientOne.name }),
+    });
+    hidePopups();
 }
 
 // Log Messages to the Game Output
 function log(message) {
-    const gameOutput = document.getElementById('game-output');
-    const p = document.createElement('p');
-    p.textContent = message;
-    gameOutput.appendChild(p);
-    gameOutput.scrollTop = gameOutput.scrollHeight;
+    const $gameOutput = $('#game-output');
+    $gameOutput.append($('<p>').text(message));
+    $gameOutput.scrollTop($gameOutput[0].scrollHeight);
 }
 
 // Make the functions globally accessible

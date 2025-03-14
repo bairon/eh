@@ -59,6 +59,6 @@ public class AncientOneController {
         // Broadcast the updated game state to all clients in the session
         messagingTemplate.convertAndSend("/topic/gameSession/" + gameSessionId, gameSession);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gameSession);
     }
 }
