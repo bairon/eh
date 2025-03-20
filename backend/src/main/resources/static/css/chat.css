@@ -1,0 +1,54 @@
+/* Chat Container Styles */
+#chat-container {
+    margin-top: 20px;
+    border-top: 1px solid #444;
+    padding-top: 10px;
+    display: none; /* Hidden by default */
+}
+
+#chat-container.active {
+    display: block; /* Show when game session is active */
+}
+
+#chat-history {
+    height: 150px; /* Fixed height for message history */
+    overflow-y: auto; /* Enable scrolling */
+    background-color: #2a2a2a;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+#chat-history p {
+    margin: 0 0 5px 0;
+    color: #f0f0f0;
+    font-size: 14px;
+}
+
+.chat-input-container {
+    display: flex;
+    gap: 10px;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+}
+
+#chat-send {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#chat-send:hover {
+    background-color: #45a049;
+}

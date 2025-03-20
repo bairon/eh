@@ -6,6 +6,7 @@ import java.util.List;
 public class GameSession {
     private String sessionId;
     private String gameName;
+    private Player player;
     private List<Player> players;
     private GameState gameState;
     private GameStatus gameStatus;
@@ -16,6 +17,16 @@ public class GameSession {
         this.players = new ArrayList<>();
         this.gameState = new GameState();
     }
+
+    public GameSession(GameSession gameSession) {
+        this.sessionId = gameSession.sessionId;
+        this.gameName = gameSession.gameName;
+        this.player = gameSession.player;
+        this.players = gameSession.getPlayers();
+        this.gameState = gameSession.getGameState();
+        this.gameStatus = gameSession.getGameStatus();
+    }
+
     // Getters and Setters
 
     public String getSessionId() {
@@ -48,6 +59,14 @@ public class GameSession {
 
     public void setGameStatus(GameStatus gameStatus) {
         this.gameStatus = gameStatus;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 
     public Player getPlayerById(String id) {

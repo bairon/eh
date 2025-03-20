@@ -58,7 +58,7 @@ async function selectAncientOne(ancientOne) {
         contentType: 'application/json',
         data: JSON.stringify({name: ancientOne.name }),
     });
-    hidePopups();
+    $('#ancient-one-popup').hide();
 }
 
 // Log Messages to the Game Output

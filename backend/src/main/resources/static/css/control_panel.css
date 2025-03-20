@@ -1,0 +1,83 @@
+/* Left Control Panel */
+.control-panel {
+    width: 300px; /* Fixed width for the control panel */
+    padding: 20px;
+    background-color: #2a2a2a;
+    border-right: 2px solid #444;
+    overflow-y: auto; /* Make the control panel scrollable if needed */
+}
+.control-panel h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+/* Control Panel Button Styles */
+.control-panel button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    background-color: #4CAF50; /* Default button color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.control-panel button:hover {
+    background-color: #45a049; /* Hover color for enabled buttons */
+}
+
+/* Disabled Button Styles */
+.control-panel button:disabled {
+    background-color: #cccccc; /* Grayed out background */
+    color: #666666; /* Grayed out text */
+    cursor: not-allowed; /* Show "not allowed" cursor */
+    pointer-events: none; /* Prevent clicks */
+}
+
+/* Optional: Add a subtle border to disabled buttons for better visibility */
+.control-panel button:disabled {
+    border: 1px solid #999999;
+}
+
+#game-output {
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Lobby Panel */
+.lobby-panel {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #333;
+    border-radius: 5px;
+    color: #f0f0f0;
+    display: none; /* Hidden by default */
+}
+
+.lobby-panel h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#lobby-ancient-one {
+    margin-bottom: 10px;
+}
+
+#lobby-players ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#lobby-players li {
+    padding: 5px 0;
+    border-bottom: 1px solid #444;
+}
+
+#lobby-players li:last-child {
+    border-bottom: none;
+}

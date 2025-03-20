@@ -10,6 +10,8 @@ public class Player {
     private int sanity;
     private List<String> items;
     private String investigatorName;
+    private boolean master;
+
     public Player() {
     }
 
@@ -25,6 +27,10 @@ public class Player {
         this.name = name;
         this.investigatorName = investigatorName;
 
+    }
+
+    public Player(String id) {
+        this.playerId = id;
     }
 
     public String getInvestigatorName() {
@@ -81,6 +87,14 @@ public class Player {
 
     public void setItems(List<String> items) {
         this.items = items;
+    }
+
+    public void setMaster(boolean master) {
+        this.master = master;
+    }
+
+    public boolean isMaster() {
+        return master;
     }
 // Getters and Setters
 }

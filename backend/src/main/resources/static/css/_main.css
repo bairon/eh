@@ -1,0 +1,58 @@
+/* Reset default margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Full-screen container */
+body, html {
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+}
+
+/* Main container for the layout */
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Game Field Container */
+.game-field-container {
+    flex: 1; /* Take up remaining space */
+    overflow: hidden; /* Enable scrolling */
+    position: relative; /* Required for positioning layers */
+    background-color: #000;
+    /* Remove margin-left: 300px; */
+    margin-left: 0; /* No margin, starts immediately after the control panel */
+}
+
+/* Draggable Layer (Background) */
+.draggable-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: max-content; /* Expand to fit the game field */
+    height: max-content; /* Expand to fit the game field */
+    overflow: hidden; /* Hide scrollbars */
+}
+
+/* Game Field Image */
+.game-field {
+    display: block;
+    width: 100%; /* Ensure the image scales correctly */
+    height: auto; /* Maintain aspect ratio */
+}
+
+/* Canvas for drawing dynamic elements */
+#game-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Match the game field size */
+    height: auto; /* Match the game field size */
+    pointer-events: none; /* Allow clicks to pass through to the image */
+}

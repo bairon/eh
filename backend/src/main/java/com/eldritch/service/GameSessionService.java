@@ -14,12 +14,15 @@ public class GameSessionService {
 
     private static final int MAX_PLAYERS = 4;
     private final Map<String, GameSession> activeSessions = new HashMap<>();
+    private final Map<String, Player> activePlayers = new HashMap<>();
 
-    public GameSession createGameSession(String gameName) {
+    public GameSession createGameSession(String gameName, Player player) {
         String sessionId = UUID.randomUUID().toString();
         GameSession session = new GameSession(sessionId, gameName);
         session.setGameStatus(GameStatus.LOBBY);
+        session.addPlayer(player);
         activeSessions.put(sessionId, session);
+
         return session;
     }
 
@@ -49,5 +52,10 @@ public class GameSessionService {
             }
         }
         return gameSession;
+    }
+
+    public Player getPlayer(String id) {
+        activePlayers.putIfAbsent(id, new Player(UUID.randomUUID().toString()));
+        return activePlayers.get(id);
     }
 }

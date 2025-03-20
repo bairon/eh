@@ -43,13 +43,13 @@ public class InvestigatorController {
 
         // Retrieve the game state from the GameSession
         GameSession gameSession = gameSessionService.getGameSession(gameSessionId);
-        Player player = gameSession.getPlayerById(session.getId());
+        Player player = gameSessionService.getPlayer(session.getId());
 
         if (player == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("You are not in the game.");
         }
 
-        String investigatorName = request.get("name");
+        String investigatorName = request.get("investigatorName");
         player.setInvestigatorName(investigatorName);
 
         // Broadcast the updated game state to all clients in the session

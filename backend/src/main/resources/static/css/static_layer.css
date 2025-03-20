@@ -1,0 +1,45 @@
+/* Static Layer (Non-draggable elements) */
+.static-layer {
+    position: fixed; /* Fix the static layer in place */
+    top: 0;
+    left: 300px; /* Start after the control panel */
+    width: calc(100% - 300px); /* Take up remaining space */
+    height: 100%;
+    pointer-events: none; /* Prevent interaction with static elements */
+    z-index: 2; /* Ensure static elements are above the draggable layer */
+}
+
+/* Doom Bar */
+.doom-bar {
+    position: absolute;
+    top: 0; /* Align with the top of the static layer */
+    left: 0; /* Align with the left of the static layer */
+    width: 90%; /* Adjust width to leave space for the omen circle */
+    height: auto; /* Use actual image size */
+}
+/* Black Frame Overlay */
+.doom-progress {
+    position: absolute;
+    top: 0;
+    width: 80px; /* Adjust based on your image size */
+    height: 80px; /* Adjust based on your image size */
+    pointer-events: none; /* Prevent interaction with the frame */
+    display: block;
+}
+/* Omen Circle */
+.omen-circle {
+    position: absolute;
+    top: 0; /* Align with the top of the static layer */
+    left: 90%; /* Position to the right of the doom bar */
+    width: 10%; /* Adjust width to fit the remaining space */
+    height: auto; /* Use actual image size */
+}
+
+/* Assets Rectangle */
+.assets-rectangle {
+    position: absolute;
+    bottom: 0; /* Align with the bottom of the static layer */
+    left: 0; /* Align with the left of the static layer */
+    width: auto; /* Use actual image size */
+    height: auto; /* Use actual image size */
+}

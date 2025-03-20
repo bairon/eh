@@ -58,7 +58,7 @@ async function selectInvestigator(investigator) {
             contentType: 'application/json',
             data: JSON.stringify({ investigatorName: investigator.name }),
         });
-        hidePopups();
+        $('#investigator-popup').hide();
     } catch (error) {
         alert(error.responseText);
     }

@@ -1,0 +1,112 @@
+/* User Container */
+.user-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between avatar and link */
+    margin-bottom: 20px; /* Space below the user container */
+}
+
+/* Avatar */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    color: #fff;
+}
+
+.user-avatar:hover {
+    background-color: #bbb;
+}
+
+/* Login / Logout Link */
+#auth-link {
+    color: #4CAF50; /* Green color for the link */
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#auth-link:hover {
+    text-decoration: underline;
+}
+
+/* Auth Popup Styles */
+#auth-popup .popup-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Adds spacing between elements */
+}
+
+#auth-popup #login-input, #password-input {
+    width: 50%;
+    padding: 8px;
+    margin-bottom: 10px; /* Adds space below the input */
+    font-size: 16px;
+}
+
+#auth-popup .popup-buttons {
+    display: flex;
+    gap: 10px; /* Adds spacing between buttons */
+}
+
+#auth-popup .popup-buttons button {
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+}
+
+#auth-popup .popup-buttons button:hover {
+    background-color: #0056b3;
+}
+
+#auth-popup .popup-buttons button#auth-cancel {
+    background-color: #6c757d;
+}
+
+#auth-popup .popup-buttons button#auth-cancel:hover {
+    background-color: #5a6268;
+}
+/* OAuth Container */
+.oauth-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.oauth-container p {
+    margin-bottom: 10px;
+}
+
+.google-oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.google-oauth-btn:hover {
+    background-color: #357ABD;
+}
+
+.google-oauth-btn img {
+    width: 20px;
+    height: 20px;
+}
+

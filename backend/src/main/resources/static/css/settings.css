@@ -1,0 +1,71 @@
+/* Settings Button (Gear Icon) */
+#settings-btn {
+    margin-left: 10px;
+    padding: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+#settings-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+#settings-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: #007bff; /* Blue color for the gear icon */
+}
+
+#settings-btn:hover svg {
+    fill: #0056b3; /* Darker blue on hover */
+}
+
+/* Preferences Popup */
+#preferences-popup .popup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#preferences-popup label {
+    font-weight: bold;
+}
+
+#preferences-popup select, #preferences-popup input {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#preferences-popup .popup-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+#preferences-popup .popup-buttons button {
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+}
+
+#preferences-popup .popup-buttons button:hover {
+    background-color: #0056b3;
+}

@@ -4,24 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eldritch Horror Prototype</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="investigator.css">
-    <link rel="stylesheet" href="ancientone.css">
+    <link rel="stylesheet" href="css/_main.css">
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="css/control_panel.css">
+    <link rel="stylesheet" href="css/user.css">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="css/static_layer.css">
+    <link rel="stylesheet" href="css/static_layer.css">
+    <link rel="stylesheet" href="css/session_popup.css">
+    <link rel="stylesheet" href="css/investigator_popup.css">
+    <link rel="stylesheet" href="css/ancientone_popup.css">
     <script src="js/jquery-3.6.0.min.js"></script>
     <script src="js/sockjs.min.js"></script>
     <script src="js/stomp.min.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/control_panel.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/session.js"></script>
+    <script src="js/gamefield.js"></script>
+    <script src="js/ancientone.js"></script>
+    <script src="js/investigator.js"></script>
+    <script src="js/doombar.js"></script>
 </head>
 <body>
 <div class="container">
     <!-- Left Panel for Controls -->
     <div class="control-panel">
+        <div class="user-container">
+            <div id="user-avatar" class="user-avatar">
+                <span id="avatar-initials"></span>
+            </div>
+            <div id="nickname-display"></div>
+            <a id="auth-link" href="#" onclick="handleAuthLinkClick()">Login</a>
+<!--            <img id="settings-btn" src="assets/settings-glyph-black-icon.jpg" onclick="showPreferencesPopup()" style="display: none;" />-->
+            <button id="settings-btn" onclick="showPreferencesPopup()" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
+                    <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+                    <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+                </svg>
+            </button>
+        </div>
         <h1>Eldritch Horror</h1>
-        <button onclick="showCreateGamePopup()" id="create-game-btn">Create Game</button> <!-- New Button -->
-        <button onclick="showJoinGamePopup()" id="join-game-btn">Join Game</button> <!-- New Button -->
-        <button  onclick="populateAncientOnes()" id="select-ancient-one-btn">Select Ancient One</button>
-        <button  onclick="populateInvestigators()" id="select-investigator-btn">Select Investigator</button>
-        <button onclick="startGame()" id="start-game-btn">Start Game</button> <!-- New Button -->
-        <button onclick="leaveGame()" id="leave-game-btn">Leave Game</button> <!-- New Button -->
+        <button onclick="showCreateGamePopup()" id="create-game-btn" disabled>Create Game</button> <!-- New Button -->
+        <button onclick="showJoinGamePopup()" id="join-game-btn" disabled>Join Game</button> <!-- New Button -->
+        <button  onclick="populateAncientOnes()" id="select-ancient-one-btn" disabled>Select Ancient One</button>
+        <button  onclick="populateInvestigators()" id="select-investigator-btn" disabled>Select Investigator</button>
+        <button onclick="startGame()" id="start-game-btn" disabled>Start Game</button> <!-- New Button -->
+        <button onclick="leaveGame()" id="leave-game-btn" disabled>Leave Game</button> <!-- New Button -->
         <!-- Lobby Panel -->
         <div id="lobby-panel" class="lobby-panel">
             <h2>Lobby: <span id="lobby-game-name">Unnamed</span></h2>
@@ -35,7 +65,15 @@
                 </ul>
             </div>
         </div>
-        <div id="game-session" class="game-session"></div>
+        <!-- Chat Container -->
+        <div id="chat-container" class="chat-container">
+            <div id="chat-history" class="chat-history"></div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Chat..." disabled/>
+                <button id="chat-send" disabled>Send</button>
+            </div>
+        </div>
+<!--        <div id="game-session" class="game-session"></div>-->
     </div>
 
     <!-- Static Layer (Non-draggable elements) -->
@@ -101,11 +139,12 @@
     <div class="popup-content">
         <h2>Create Game</h2>
         <input type="text" id="game-name" placeholder="Enter Game Name">
-        <button  onclick="createGameSession()" id="create-game-submit">Create</button>
-        <button   onclick="hidePopups()" id="create-game-cancel">Cancel</button>
+        <div class="popup-buttons">
+            <button onclick="createGameSession()" id="create-game-submit">OK</button>
+            <button onclick="hidePopups()" id="create-game-cancel">Cancel</button>
+        </div>
     </div>
 </div>
-
 <!-- Join Game Popup -->
 <div id="join-game-popup" class="popup">
     <div class="popup-content">
@@ -113,18 +152,64 @@
         <div class="game-list" id="game-list">
             <!-- List of available games will be populated here -->
         </div>
-        <button id="join-game-cancel">Cancel</button>
+        <div class="popup-buttons">
+            <button id="join-game-join">Join</button>
+            <button id="join-game-cancel">Cancel</button>
+        </div>
     </div>
 </div>
-
-<!-- Overlay for popups -->
+<!-- Auth Popup -->
+<div id="auth-popup" class="popup">
+    <div class="popup-content">
+        <h2>Login / Register</h2>
+        <div id="login-form">
+            <input type="text" id="login-input" placeholder="Login">
+            <input type="password" id="password-input" placeholder="Password">
+            <div class="popup-buttons">
+                <button onclick="handleLogin()" id="login-submit">Login</button>
+                <button onclick="showRegisterForm()" id="register-toggle">Register</button>
+                <button onclick="hidePopups()" id="login-cancel">Cancel</button>
+            </div>
+        </div>
+        <div id="register-form" style="display: none;">
+            <input type="text" id="register-login" placeholder="Login">
+            <input type="password" id="register-password" placeholder="Password">
+            <input type="password" id="register-confirm-password" placeholder="Confirm password">
+            <div class="popup-buttons">
+                <button onclick="handleRegister()" id="register-submit">Register</button>
+                <button onclick="showLoginForm()" id="login-toggle">Back to Login</button>
+                <button onclick="hidePopups()" id="register-cancel">Cancel</button>
+            </div>
+        </div>
+        <div class="oauth-container">
+            <p>Or login with:</p>
+            <button onclick="initiateGoogleAuth()" class="google-oauth-btn">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo">
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Add this popup for preferences -->
+<div id="preferences-popup" class="popup">
+    <div class="popup-content">
+        <h2>Preferences</h2>
+        <label for="login-input-disabled">Your Login:</label>
+        <input type="text" id="login-input-disabled" disabled placeholder="">
+        <label for="language-select">Language:</label>
+        <select id="language-select">
+            <option value="en">English</option>
+            <option value="ru">Russian</option>
+        </select>
+        <label for="nickname-input">Nickname:</label>
+        <input type="text" id="nickname-input" placeholder="Enter your nickname">
+        <div class="popup-buttons">
+            <button onclick="savePreferences()">Save</button>
+            <button onclick="hidePreferencesPopup()">Cancel</button>
+        </div>
+    </div>
+</div>
 <div id="overlay" class="overlay"></div>
 
-<script src="control_panel.js"></script>
-<script src="session.js"></script>
-<script src="gamefield.js"></script>
-<script src="ancientone.js"></script>
-<script src="investigator.js"></script>
-<script src="doombar.js"></script>
 </body>
 </html>

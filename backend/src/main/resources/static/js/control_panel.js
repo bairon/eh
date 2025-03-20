@@ -7,8 +7,23 @@ function showJoinGamePopup() {
     $('#join-game-popup').show();
     $('#overlay').show();
     fetchAvailableGames(); // Fetch available games from the server
-}
 
+    // Handle Join button click
+    $('#join-game-join').off('click').on('click', function () {
+        const selectedGame = $('#game-list .game-item.selected');
+        if (selectedGame.length > 0) {
+            const sessionId = selectedGame.data('session-id');
+            joinGame(sessionId);
+        } else {
+            alert('Please select a game to join.');
+        }
+    });
+
+    // Handle Cancel button click
+    $('#join-game-cancel').off('click').on('click', function () {
+        hidePopups();
+    });
+}
 
 // Function to update the Lobby Panel
 function updateLobbyPanel(gameSession) {
@@ -39,11 +54,32 @@ function updateLobbyPanel(gameSession) {
         });
     }
 }
-
+function updateControlPanel(gameSession) {
+    if (gameSession) {
+        $('#create-game-btn').prop('disabled', true);
+        $('#join-game-btn').prop('disabled', true);
+        $('#select-ancient-one-btn').prop('disabled', false);
+        $('#select-investigator-btn').prop('disabled', false);
+        if (gameSession && gameSession.player && gameSession.player.master) {
+            $('#start-game-btn').prop('disabled', false);
+        } else {
+            $('#start-game-btn').prop('disabled', true);
+        }
+        $('#leave-game-btn').prop('disabled', false);
+    } else {
+        $('#create-game-btn').prop('disabled', false);
+        $('#join-game-btn').prop('disabled', false);
+        $('#select-ancient-one-btn').prop('disabled', true);
+        $('#select-investigator-btn').prop('disabled', true);
+        $('#start-game-btn').prop('disabled', true);
+        $('#leave-game-btn').prop('disabled', true);
+    }
+}
 // Hide Popups
 function hidePopups() {
     $('#create-game-popup').hide();
     $('#join-game-popup').hide();
+    $('#auth-popup').hide();
     $('#overlay').hide();
 }
 function log(message) {
