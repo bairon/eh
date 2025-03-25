@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -46,7 +47,7 @@ public class UserService {
         }
         return null;
     }
-    public Object getUserDataById(String id) {
+    public UserData getUserDataById(String id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             User userEntity = user.get();
@@ -104,4 +105,11 @@ public class UserService {
         }
     }
 
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public void deleteUser(User user) {
+        userRepository.delete(user);
+    }
 }

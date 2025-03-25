@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Locale;
 import java.util.Map;
 
 @RestController
@@ -43,12 +44,17 @@ public class UserController {
                 User user = userService.registerUser(email, name, email, "");
                 userData = new UserData(user.getId(), email, user.getEmail(), user.getNickname(), user.getLanguage());
             }
+            session.setAttribute("userId", userData.getId());
+            session.setAttribute("locale", userData.getLanguage() != null ? new Locale(userData.getLanguage()) : Locale.ENGLISH);
             return ResponseEntity.ok(userData);
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             String nickname = authentication.getName();
             UserData userData = userService.getUserData(nickname + "@eldritch.com");
+            if (userData != null) {
+                session.setAttribute("userId", userData.getId());
+            }
             return ResponseEntity.ok(userData);
         }
         return ResponseEntity.ok().build();

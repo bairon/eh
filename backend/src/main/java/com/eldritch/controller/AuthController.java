@@ -10,12 +10,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @RestController
@@ -33,6 +32,7 @@ public class AuthController {
         SecurityContextHolder.clearContext();
         session.removeAttribute("SPRING_SECURITY_CONTEXT");
         session.removeAttribute("userId");
+        session.removeAttribute("language");
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Logout successful");
@@ -40,9 +40,18 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/users")
+    public ResponseEntity<?> users(HttpSession session) {
+        List<User> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody RegisterRequest request, HttpSession session) {
         try {
+            if (request.getLogin() == null || request.getPassword() == null) {
+                return ResponseEntity.badRequest().body("Provide login and password");
+            }
             // Authenticate the user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword()) // Update this line
@@ -55,7 +64,8 @@ public class AuthController {
             // Fetch user data
             UserData user = userService.getUserData(request.getLogin() + "@eldritch.com"); // Update this line
             session.setAttribute("userId", user.getId());
-            return ResponseEntity.ok(user);
+            session.setAttribute("locale", user.getLanguage() != null ? new Locale(user.getLanguage()) : Locale.ENGLISH);
+        return ResponseEntity.ok(user);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("message", "Login failed: " + e.getMessage());
@@ -80,6 +90,7 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
             session.setAttribute("userId", user.getId());
+            session.setAttribute("locale", user.getLanguage() != null ? new Locale(user.getLanguage()) : Locale.ENGLISH);
 
             // Return user data
             return ResponseEntity.ok(new UserData(user.getId(), user.getLogin(), email, nickname, user.getLanguage()));

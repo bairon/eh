@@ -3,6 +3,7 @@ package com.eldritch.service;
 import com.eldritch.model.GameSession;
 import com.eldritch.model.GameStatus;
 import com.eldritch.model.Player;
+import com.eldritch.model.UserData;
 import com.eldritch.service.exception.GameNotAvailableException;
 import org.springframework.stereotype.Service;
 
@@ -54,8 +55,11 @@ public class GameSessionService {
         return gameSession;
     }
 
-    public Player getPlayer(String id) {
-        activePlayers.putIfAbsent(id, new Player(UUID.randomUUID().toString()));
-        return activePlayers.get(id);
+    public Player getPlayer(UserData userData) {
+        activePlayers.putIfAbsent(userData.getId(), new Player(userData));
+        return activePlayers.get(userData.getId());
+    }
+    public Player getPlayer(String userId) {
+        return activePlayers.get(userId);
     }
 }

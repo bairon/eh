@@ -33,6 +33,11 @@ public class Player {
         this.playerId = id;
     }
 
+    public Player(UserData userData) {
+        this.playerId = userData.getId();
+        this.name = userData.getNickname();
+    }
+
     public String getInvestigatorName() {
         return investigatorName;
     }

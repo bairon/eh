@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/assets/**", "/favicon.ico").permitAll() // Allow access to static resources
                         .requestMatchers("/eldritch-websocket", "/eldritch-websocket/**").permitAll() // Allow WebSocket connections
                         .requestMatchers("/api/auth/**").permitAll() // Allow custom login
+                        .requestMatchers("/api/static/**").permitAll() // Allow custom login
                         .requestMatchers("/api/user").permitAll() // Allow custom login
                         .requestMatchers("/oauth2/authorization/google").permitAll() // Allow Google OAuth2 login
                         .anyRequest().authenticated() // Require authentication for all other endpoints

@@ -19,7 +19,9 @@ body, html {
     display: flex;
     height: 100vh;
 }
-
+.popup {
+    width: 600px;
+}
 /* Game Field Container */
 .game-field-container {
     flex: 1; /* Take up remaining space */

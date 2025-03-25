@@ -1,8 +1,6 @@
 package com.eldritch.service;
 
-import com.eldritch.model.GameState;
-import com.eldritch.model.Player;
-import com.eldritch.model.AncientOne;
+import com.eldritch.model.*;
 import com.eldritch.model.events.MythosEvent;
 import com.eldritch.model.events.OmenChangeEvent;
 import com.eldritch.model.events.ReckoningEvent;
@@ -15,7 +13,14 @@ import java.util.List;
 
 @Service
 public class GameService {
+
     private GameState gameState;
+
+    @Autowired
+    private PortalService portalService;
+
+    @Autowired
+    private ClueService clueService;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -43,4 +48,19 @@ public class GameService {
         eventPublisher.publishEvent(new MythosEvent("A new Mythos card is drawn!"));
     }
 
+    public GameSession initDepo(GameSession gameSession) {
+        gameSession.setDepo(new Depo(
+                portalService.getPortals(),
+                clueService.getClues()
+                )
+        );
+        return gameSession;
+    }
+
+    public void start(GameSession gameSession) {
+        gameSession.setGameStatus(GameStatus.ONGOING);
+
+        initDepo(gameSession);
+
+    }
 }

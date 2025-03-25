@@ -29,6 +29,12 @@
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>7.8.0</version> <!-- Use the latest version -->
+            <scope>test</scope>
+        </dependency>
 
         <!-- Other dependencies (e.g., Spring Boot Starter Web, Security, etc.) -->
         <dependency>

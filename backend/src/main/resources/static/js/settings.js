@@ -30,7 +30,7 @@ async function savePreferences() {
                 language: language
             })
         });
-        updateUserAvatar();
+        await checkUser();
     } catch (error) {
         console.error('Error:', error);
         alert('An error occurred while saving preferences.');

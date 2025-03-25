@@ -1,5 +1,12 @@
+let staticData;
 let userData;
-
+let allUsers;
+async function getAllUsers() {
+    allUsers = await $.ajax({
+        url: '/api/auth/users',
+        method: 'GET',
+    });
+}
 function initiateGoogleAuth() {
     window.location.href = '/oauth2/authorization/google';
 }
@@ -11,7 +18,8 @@ function updateUserAvatar() {
     const $avatar = $('#user-avatar');
     const $avatarInitials = $('#avatar-initials');
     const $nicknameDisplay = $('#nickname-display');
-    const $authLink = $('#auth-link');
+    const $authLinkLogin = $('#auth-link-login');
+    const $authLinkLogout = $('#auth-link-logout');
 
     if (userData) {
         // Remove quotes and special characters from the nickname
@@ -24,12 +32,14 @@ function updateUserAvatar() {
         $avatarInitials.text(initials);
         $avatar.css('background-color', getRandomColor()); // Optional: Add a random color
         $nicknameDisplay.text(sanitizedName);
-        $authLink.text('Logout');
+        $authLinkLogin.hide();
+        $authLinkLogout.show();
     } else {
         $avatarInitials.text('?');
         $avatar.css('background-color', '#ccc');
         $nicknameDisplay.text('');
-        $authLink.text('Login');
+        $authLinkLogin.show();
+        $authLinkLogout.hide();
     }
     updateSettingsButton(isAuthenticated());
 }
@@ -44,33 +54,10 @@ function getRandomColor() {
     return color;
 }
 
-function checkAuthenticationAndUpdateUI(authenticated) {
-    if (!authenticated) {
-        // Disable or hide UI elements for unauthorized users
-        $('#create-game-btn').prop('disabled', true);
-        $('#join-game-btn').prop('disabled', true);
-        $('#select-ancient-one-btn').prop('disabled', true);
-        $('#select-investigator-btn').prop('disabled', true);
-        $('#start-game-btn').prop('disabled', true);
-        $('#leave-game-btn').prop('disabled', true);
-        $('#chat-input').prop('disabled', true);
-        $('#chat-send').prop('disabled', true);
-    } else {
-        // Enable or show UI elements for authorized users
-        $('#create-game-btn').prop('disabled', false);
-        $('#join-game-btn').prop('disabled', false);
-        $('#select-ancient-one-btn').prop('disabled', false);
-        $('#select-investigator-btn').prop('disabled', false);
-        $('#start-game-btn').prop('disabled', false);
-        $('#leave-game-btn').prop('disabled', false);
-        $('#chat-input').prop('disabled', false);
-        $('#chat-send').prop('disabled', false);
-    }
-}
 
 $(document).ready(async function () {
     await checkUser();
-    await checkAuthenticationAndUpdateUI(isAuthenticated()); // Check authentication and update UI on page load
+    updateControlPanel(); // Check authentication and update UI on page load
 });
 
 // auth.js
@@ -87,18 +74,28 @@ function showLoginForm() {
 
 async function checkUser() {
     try {
+
         userData = await $.ajax({
             url: '/api/user',
             method: 'GET',
         });
 
+        staticData = await getStaticData();
+        console.log(staticData);
+        updateUserAvatar();
+        updateStaticUI();
         if (userData) {
-            updateUserAvatar();
             await checkGame(); // Check if the user is already in a game session
         }
     } catch (error) {
         console.log('CheckUser:', error);
     }
+}
+async function getStaticData() {
+    return $.ajax({
+        url: '/api/static/data',
+        method: 'GET',
+    });
 }
 
 async function handleRegister() {

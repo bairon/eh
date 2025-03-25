@@ -42,8 +42,9 @@ public class InvestigatorController {
         }
 
         // Retrieve the game state from the GameSession
+        String userId = (String) session.getAttribute("userId");
         GameSession gameSession = gameSessionService.getGameSession(gameSessionId);
-        Player player = gameSessionService.getPlayer(session.getId());
+        Player player = gameSessionService.getPlayer(userId);
 
         if (player == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("You are not in the game.");

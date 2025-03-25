@@ -2,9 +2,14 @@ package com.eldritch.controller;
 
 import com.eldritch.model.GameSession;
 import com.eldritch.model.Player;
+import com.eldritch.model.UserData;
+import com.eldritch.service.GameService;
 import com.eldritch.service.GameSessionService;
+import com.eldritch.service.UserService;
 import com.eldritch.service.exception.GameNotAvailableException;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +24,19 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/game")
 public class GameController {
+    private static final Logger logger = LoggerFactory.getLogger(GameController.class);
 
     @Autowired
     private GameSessionService gameSessionService;
+
+    @Autowired
+    private GameService gameService;
+
     @Autowired
     private SimpMessagingTemplate messagingTemplate; // For WebSocket broadcasting
+
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/user")
     public String getUserName(@AuthenticationPrincipal OAuth2User principal) {
@@ -37,9 +50,9 @@ public class GameController {
     public ResponseEntity<GameSession> createGameSession(@RequestBody Map<String, String> request, HttpSession session) {
         System.out.println("/create:" + session.getId());
         String gameName = request.get("gameName");
-        String playerName = request.get("playerName");
-        Player player = gameSessionService.getPlayer(session.getId());
-        player.setName(playerName);
+        String userId = (String) session.getAttribute("userId");
+        UserData userData = userService.getUserDataById(userId);
+        Player player = gameSessionService.getPlayer(userData);
         player.setMaster(true);
         GameSession gameSession = gameSessionService.createGameSession(gameName, player);
 
@@ -60,11 +73,10 @@ public class GameController {
 
     @PostMapping("/join")
     public ResponseEntity<Object> joinGameSession(@RequestBody Map<String, String> request, HttpSession session) {
-        System.out.println("/join:" + session.getId());
-        String playerName = request.get("playerName");
         String sessionId = request.get("sessionId");
-        Player player = gameSessionService.getPlayer(session.getId());
-        player.setName(playerName);
+        String userId = session.getAttribute("userId").toString();
+        UserData userData = userService.getUserDataById(userId);
+        Player player = gameSessionService.getPlayer(userData);
         player.setMaster(false);
         try {
             GameSession gameSession = gameSessionService.joinGameSession(sessionId, player);
@@ -85,7 +97,7 @@ public class GameController {
         String gameSessionId = (String) session.getAttribute("gameSessionId");
         if (gameSessionId != null) {
             GameSession gameSession = gameSessionService.leaveGameSession(gameSessionId, session.getId());
-            session.setAttribute("gameSessionId", null);
+            session.removeAttribute("gameSessionId");
             if (gameSession != null) {
                 messagingTemplate.convertAndSend("/topic/gameSession/" + gameSessionId, gameSession);
             }
@@ -97,12 +109,6 @@ public class GameController {
     public ResponseEntity<Void> ping(HttpSession session) {
         System.out.println("/ping:" + session.getId());
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<String> me(HttpSession session) {
-        System.out.println("/me:" + session.getId());
-        return ResponseEntity.ok(gameSessionService.getPlayer(session.getId()).getPlayerId());
     }
 
     @GetMapping("/check")
@@ -119,4 +125,20 @@ public class GameController {
         }
         return ResponseEntity.ok(gameSession);
     }
+    @PostMapping("/start")
+    public ResponseEntity<Void> start(HttpSession session) {
+        String gameSessionId = (String) session.getAttribute("gameSessionId");
+        if (gameSessionId == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        GameSession gameSession = gameSessionService.getGameSession(gameSessionId);
+        if (gameSession == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        logger.debug("Starting game " + session.getId());
+        gameService.start(gameSession);
+        messagingTemplate.convertAndSend("/topic/gameSession/" + gameSessionId, gameSession);
+        return ResponseEntity.ok().build();
+    }
+
 }

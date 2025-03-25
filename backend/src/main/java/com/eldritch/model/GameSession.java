@@ -1,15 +1,21 @@
 package com.eldritch.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameSession {
+
     private String sessionId;
     private String gameName;
     private Player player;
     private List<Player> players;
     private GameState gameState;
     private GameStatus gameStatus;
+    @JsonIgnore
+    private Depo depo;
+
 
     public GameSession(String sessionId, String gameName) {
         this.sessionId = sessionId;
@@ -71,5 +77,13 @@ public class GameSession {
 
     public Player getPlayerById(String id) {
         return players.stream().filter(player -> player.getPlayerId().equals(id)).findFirst().orElse(null);
+    }
+
+    public Depo getDepo() {
+        return depo;
+    }
+
+    public void setDepo(Depo depo) {
+        this.depo = depo;
     }
 }

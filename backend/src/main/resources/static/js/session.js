@@ -1,4 +1,4 @@
-let gameSession = undefined, playerId = undefined;
+let gameSession = undefined;
 let stompClient = null; // Store the stompClient globally
 
 
@@ -7,37 +7,19 @@ function updateGame(session) {
         gameSession = undefined;
     } else {
         gameSession = session;
+        gameSession.player = gameSession.players.find(p => p.playerId === userData.id);
         if (!stompClient || !stompClient.connected) {
             connectToWebSocket(gameSession.sessionId);
         }
     }
+
+
     updateChatVisibility(gameSession);
     updateControlPanel(gameSession);
     updateLobbyPanel(gameSession);
+    drawGame(gameSession);
 }
 
-async function init() {
-    await ping();
-    await myId();
-    await checkGame();
-}
-async function ping() {
-    await $.ajax({
-        url: '/api/game/ping',
-        method: 'GET',
-    });
-}
-async function myId() {
-    try {
-        playerId = await $.ajax({
-            url: '/api/game/me',
-            method: 'GET',
-        });
-    } catch (error) {
-        console.log("No active game found.");
-        updateGame();
-    }
-}
 async function checkGame() {
     try {
         const response = await $.ajax({

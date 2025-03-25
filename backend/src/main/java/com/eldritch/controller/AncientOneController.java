@@ -32,8 +32,8 @@ public class AncientOneController {
     private SimpMessagingTemplate messagingTemplate; // For WebSocket broadcasting
 
     @GetMapping("/list")
-    public List<AncientOne> getAncientOnes() {
-        Locale locale = LocaleContextHolder.getLocale();
+    public List<AncientOne> getAncientOnes(HttpSession session) {
+        Locale locale = (Locale) session.getAttribute("locale");
         return ancientOneService.getAncientOnes(locale);
     }
 
