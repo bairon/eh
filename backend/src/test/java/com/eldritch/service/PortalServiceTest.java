@@ -1,6 +1,7 @@
 package com.eldritch.service;
 
-import com.eldritch.model.Portal;
+import com.eldritch.game.Portal;
+import com.eldritch.game.PortalService;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

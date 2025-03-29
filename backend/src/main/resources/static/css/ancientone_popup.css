@@ -5,7 +5,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 900px;
+    width: 1200px; /* Increased from 900px to 1200px */
     background-color: transparent; /* Transparent background */
     border: none; /* Remove border */
     box-shadow: none; /* Remove box shadow */
@@ -22,7 +22,7 @@
 
 /* Left Div: List of Ancient One Names */
 .ancient-one-list {
-    width: 10%;
+    width: 13%; /* Slightly increased from 10% to accommodate longer names */
     border-right: 1px solid #ccc;
     padding-right: 20px;
 }
@@ -41,7 +41,7 @@
 
 /* Right Div: Ancient One Details */
 .ancient-one-details {
-    width: 90%;
+    width: 87%; /* Adjusted from 90% to match the increased left panel */
     padding-left: 20px;
 }
 .image-container {
@@ -80,4 +80,9 @@
 .ancient-one-description {
     font-size: 14px;
     color: #333; /* Darker color for description */
+}
+/* Add this to ancientone_popup.css */
+.ancient-one-list div.active {
+    background-color: #4CAF50 !important;
+    color: white !important;
 }

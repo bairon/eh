@@ -1,7 +1,7 @@
 package com.eldritch.security;
 
-import com.eldritch.da.UserRepository;
-import com.eldritch.model.User;
+import com.eldritch.user.UserRepository;
+import com.eldritch.user.User;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

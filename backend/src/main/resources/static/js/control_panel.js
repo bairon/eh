@@ -1,12 +1,10 @@
 function showCreateGamePopup() {
-    $('#create-game-popup').show();
-    $('#overlay').show();
+    showPopup('#create-game-popup');
 }
 
 function showJoinGamePopup() {
-    $('#join-game-popup').show();
-    $('#overlay').show();
-    fetchAvailableGames(); // Fetch available games from the server
+    showPopup('#join-game-popup');
+    fetchAvailableGames();
 
     // Handle Join button click
     $('#join-game-join').off('click').on('click', function () {
@@ -21,11 +19,10 @@ function showJoinGamePopup() {
 
     // Handle Cancel button click
     $('#join-game-cancel').off('click').on('click', function () {
-        hidePopups();
+        hideAllPopups();
     });
 }
 
-// Function to update the Lobby Panel
 function updateLobbyPanel(gameSession) {
     const $lobbyPanel = $('#lobby-panel');
     if (gameSession === undefined || gameSession.gameStatus !== 'LOBBY') {
@@ -40,8 +37,8 @@ function updateLobbyPanel(gameSession) {
         $gameNameElement.text(gameSession.gameName);
 
         // Update the selected Ancient One
-        if (gameSession.gameState.ancientOne) {
-            $selectedAncientOne.text(gameSession.gameState.ancientOne.name);
+        if (gameSession.gameState.ancientId) {
+            $selectedAncientOne.text(staticData[gameSession.gameState.ancientId + '.name']);
         } else {
             $selectedAncientOne.text('N/A');
         }
@@ -49,42 +46,101 @@ function updateLobbyPanel(gameSession) {
         // Update the list of players
         $playerList.empty(); // Clear the list
         gameSession.players.forEach(player => {
-            const $li = $('<li>').text(`${player.name} (${player.investigatorName || 'N/A'})`);
+            const investigatorName = player.investigatorId ? staticData[player.investigatorId + '.name'] : 'N/A';
+            const $li = $('<li>').addClass('player-item');
+
+            // Player info container
+            const $playerInfo = $('<div>').addClass('player-info').text(`${player.name} (${investigatorName})`);
+            $li.append($playerInfo);
+
+            // Add kick button if current user is master and it's not themselves
+            if (gameSession.player && gameSession.player.master && player.id !== gameSession.player.id) {
+                const $kickBtn = $('<button>')
+                    .addClass('kick-btn')
+                    .text('Kick')
+                    .click(() => kickPlayer(player.id));
+                $li.append($kickBtn);
+            }
+
             $playerList.append($li);
         });
+    }
+}
+
+async function kickPlayer(playerId) {
+    if (!confirm('Are you sure you want to kick this player?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/game/kick`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({playerId: playerId}),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to kick player');
+        }
+
+        // Refresh the lobby panel after successful kick
+        fetchGameSession();
+    } catch (error) {
+        console.error('Error kicking player:', error);
+        alert('Failed to kick player');
     }
 }
 
 function updateControlPanel() {
     const isAuth = isAuthenticated();
     const inGame = !!gameSession;
+    const ongoing = gameSession && gameSession.gameStatus === 'ONGOING';
     const isMaster = inGame && gameSession.player && gameSession.player.master;
     const isAllInvestigatorsChosen = gameSession && gameSession.players.every(player =>
-        player.investigatorName && player.investigatorName.trim() !== ""
+        player.investigatorId && player.investigatorId.trim() !== ''
     );
-    const elements = {
+    const enabling = {
         '#create-game-btn': !inGame && isAuth,
         '#join-game-btn': !inGame && isAuth,
         '#select-ancient-one-btn': inGame && isAuth,
         '#select-investigator-btn': inGame && isAuth,
         '#start-game-btn': inGame && isAuth && isMaster && isAllInvestigatorsChosen,
         '#leave-game-btn': inGame && isAuth,
-        '#chat-input': isAuth,
-        '#chat-send': isAuth
+        '#chat-input': inGame,
+        '#chat-send': inGame
     };
 
-    Object.entries(elements).forEach(([selector, enabled]) => {
+    Object.entries(enabling).forEach(([selector, enabled]) => {
         $(selector).prop('disabled', !enabled);
+        if (ongoing ) {
+            $(selector).hide();
+        } else {
+            $(selector).show();
+        }
     });
+    const visibility = {
+        '#create-game-btn': !ongoing,
+        '#join-game-btn': !ongoing,
+        '#select-ancient-one-btn': !ongoing,
+        '#select-investigator-btn': !ongoing,
+        '#start-game-btn': !ongoing,
+        '#leave-game-btn': !ongoing,
+        '#chat-input': inGame,
+        '#chat-send': inGame
+    };
+    Object.entries(visibility).forEach(([selector, visible]) => {
+        if (visible ) {
+            $(selector).show();
+        } else {
+            $(selector).hide();
+        }
+    });
+
+
 }
 
-// Hide Popups
-function hidePopups() {
-    $('#create-game-popup').hide();
-    $('#join-game-popup').hide();
-    $('#auth-popup').hide();
-    $('#overlay').hide();
-}
 async function updateStaticUI() {
     if (!staticData) {
         return;
@@ -101,9 +157,11 @@ async function updateStaticUI() {
     const $leaveGameBtn = $('#leave-game-btn');
     const $chatInput = $('#chat-input');
     const $chatSend = $('#chat-send');
+    const $lobbyNameCaption = $('#lobby-name-caption');
     const $lobbyGameName = $('#lobby-game-name');
+    const $ancientOneCaption = $('#ancient-one-caption');
     const $selectedAncientOne = $('#selected-ancient-one');
-    const $playerList = $('#player-list');
+    const $lobbyPlayersCaption = $('#lobby-players-caption');
     const $authLinkLogin = $('#auth-link-login');
     const $authLinkLogout = $('#auth-link-logout');
     const $loginInputLabel = $('#login-input-disabled-label');
@@ -123,10 +181,11 @@ async function updateStaticUI() {
     $chatSend.text(staticData.chatSendBtn || 'Send');
 
     // Update lobby panel
-    $lobbyPanel.find('h2').text(staticData.lobbyPanelTitle || 'Lobby:');
+    $lobbyNameCaption.text(staticData.lobbyNameCaption || 'Lobby:');
     $lobbyGameName.text(staticData.lobbyGameName || 'Unnamed');
+    $ancientOneCaption.text(staticData.ancientOneCaption || 'Ancient One');
     $selectedAncientOne.text(staticData.selectedAncientOne || 'Not Selected');
-    $playerList.find('strong').text(staticData.playersLabel || 'Players:');
+    $lobbyPlayersCaption.text(staticData.playersLabel || 'Players:');
 
     // Update auth link
     $authLinkLogin.text(staticData.authLinkLogin || 'Login');
@@ -148,4 +207,22 @@ function log(message) {
     $gameOutput.append($('<p>').text(message));
     $gameOutput.scrollTop($gameOutput[0].scrollHeight);
 }
+
+// Show any popup with overlay
+function showPopup(popupId) {
+    $(popupId).show();
+    $('#overlay').show();
+
+    // Prevent clicks on popup from closing it
+    $(popupId).off('click').on('click', function(e) {
+        e.stopPropagation();
+    });
+}
+
+// Hide all popups
+function hideAllPopups() {
+    $('.popup').hide();
+    $('#overlay').hide();
+}
+
 

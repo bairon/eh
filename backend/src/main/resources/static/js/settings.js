@@ -11,11 +11,6 @@ function showPreferencesPopup() {
     }
 }
 
-function hidePreferencesPopup() {
-    document.getElementById('preferences-popup').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-}
-
 async function savePreferences() {
     const nickname = document.getElementById('nickname-input').value;
     const language = document.getElementById('language-select').value;
@@ -35,7 +30,7 @@ async function savePreferences() {
         console.error('Error:', error);
         alert('An error occurred while saving preferences.');
     } finally {
-        hidePreferencesPopup();
+        hideAllPopups();
     }
 }
 

@@ -16,14 +16,18 @@
 .popup-content {
     display: flex;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white background for content */
+    background-image: url('../assets/popup_background.png');
+    background-repeat: repeat; /* Tiles the image both horizontally and vertically */
+    background-size: auto; /* Keeps original image size */
+
+    /*background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white background for content */
     border-radius: 10px; /* Rounded corners */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow to content */
 }
 
 /* Left Div: List of Investigator Names */
 .investigator-list {
-    width: 30%;
+    width: 20%;
     border-right: 1px solid #ccc;
     padding-right: 20px;
 }
@@ -42,7 +46,7 @@
 
 /* Right Div: Investigator Details */
 .investigator-details {
-    width: 70%;
+    width: 80%;
     padding-left: 20px;
 }
 

@@ -48,7 +48,7 @@ async function joinGame(sessionId) {
             alert(error.responseText);
         }
     }
-    hidePopups();
+    hideAllPopups();
 }
 
 async function fetchAvailableGames() {
@@ -95,8 +95,9 @@ async function createGameSession() {
     } catch (error) {
         console.error('Failed to create game session:', error);
         alert('Failed to create game session. Please try again.');
+    } finally {
+        hideAllPopups();
     }
-    hidePopups();
 }
 async function leaveGame() {
     if (confirm('Are you sure to Leave Game?')) {
@@ -118,7 +119,7 @@ async function leaveGame() {
             alert(error.responseText);
         }
     }
-    hidePopups();
+    hideAllPopups();
 }
 
 async function startGame() {

@@ -56,12 +56,17 @@
         <button onclick="leaveGame()" id="leave-game-btn" disabled>Leave Game</button> <!-- New Button -->
         <!-- Lobby Panel -->
         <div id="lobby-panel" class="lobby-panel">
-            <h2>Lobby: <span id="lobby-game-name">Unnamed</span></h2>
+            <div id="lobby-name">
+                <strong id="lobby-name-caption">Lobby:</strong>
+                <span id="lobby-game-name">Unnamed</span>
+            </div>
+
             <div id="lobby-ancient-one">
-                <strong>Ancient One:</strong> <span id="selected-ancient-one">Not Selected</span>
+                <strong id="ancient-one-caption">Ancient One:</strong>
+                <span id="selected-ancient-one">Not Selected</span>
             </div>
             <div id="lobby-players">
-                <strong>Players:</strong>
+                <strong id="lobby-players-caption">Players:</strong>
                 <ul id="player-list">
                     <!-- List of players will be populated here -->
                 </ul>
@@ -173,6 +178,7 @@
                 <button onclick="hidePopups()" id="login-cancel">Cancel</button>
             </div>
         </div>
+        <!-- Update the register form section to match login form structure -->
         <div id="register-form" style="display: none;">
             <input type="text" id="register-login" placeholder="Login">
             <input type="password" id="register-password" placeholder="Password">

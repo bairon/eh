@@ -20,7 +20,7 @@ body, html {
     height: 100vh;
 }
 .popup {
-    width: 600px;
+    width: 900px;
 }
 /* Game Field Container */
 .game-field-container {
@@ -57,4 +57,25 @@ body, html {
     width: 100%; /* Match the game field size */
     height: auto; /* Match the game field size */
     pointer-events: none; /* Allow clicks to pass through to the image */
+}
+/* Overlay for popups */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999; /* Just below popups */
+}
+/* For each popup */
+#ancient-one-popup,
+#investigator-popup,
+#create-game-popup,
+#join-game-popup,
+#auth-popup,
+#preferences-popup {
+    z-index: 1000; /* Above overlay */
+    /* ... other existing styles ... */
 }

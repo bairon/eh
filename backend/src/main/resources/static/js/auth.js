@@ -57,21 +57,41 @@ function getRandomColor() {
 
 $(document).ready(async function () {
     await checkUser();
-    updateControlPanel(); // Check authentication and update UI on page load
+    updateControlPanel();
+
+    // Add Enter key handlers for login and register forms
+    $('#login-input, #password-input').keypress(function(e) {
+        if (e.which === 13) { // 13 is Enter key code
+            handleLogin();
+        }
+    });
+
+    $('#register-login, #register-password, #register-confirm-password').keypress(function(e) {
+        if (e.which === 13) {
+            handleRegister();
+        }
+    });
+
+    // Set up click outside handler
+    $('#overlay').off('click').on('click', function() {
+        hideAllPopups();
+    });
+
 });
 
 // auth.js
 
-function showRegisterForm() {
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('register-form').style.display = 'block';
-}
-
 function showLoginForm() {
     document.getElementById('register-form').style.display = 'none';
     document.getElementById('login-form').style.display = 'block';
+    document.getElementById('login-input').focus();
 }
 
+function showRegisterForm() {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('register-form').style.display = 'block';
+    document.getElementById('register-login').focus();
+}
 async function checkUser() {
     try {
 
@@ -131,7 +151,7 @@ async function handleRegister() {
         console.error('Error:', error);
         alert('An error occurred during registration.');
     } finally {
-        hideAuthPopup();
+        hideAllPopups();
     }
 }
 
@@ -161,7 +181,7 @@ async function handleLogin() {
         console.error('Error:', error);
         alert('An error occurred during registration.');
     } finally {
-        hideAuthPopup();
+        hideAllPopups();
     }
 }
 
@@ -182,12 +202,9 @@ async function handleAuthLinkClick() {
     }
 }
 
-function hideAuthPopup() {
-    document.getElementById('auth-popup').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-}
-
 function showAuthPopup() {
-    document.getElementById('auth-popup').style.display = 'block';
-    document.getElementById('overlay').style.display = 'block';
+    showPopup('#auth-popup');
+    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('register-form').style.display = 'none';
+    document.getElementById('login-input').focus();
 }

@@ -1,6 +1,7 @@
 package com.eldritch.service;
 
-import com.eldritch.model.Clue;
+import com.eldritch.game.ClueService;
+import com.eldritch.game.Clue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

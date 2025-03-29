@@ -14,9 +14,9 @@ async function fetchAncientOnes() {
 
 // Display Ancient One Details
 function displayAncientOneDetails(ancientOne) {
-    $('#ancient-one-image1').attr('src', ancientOne.image1);
-    $('#ancient-one-image2').attr('src', ancientOne.image2);
-    $('#ancient-one-description').text(ancientOne.description);
+    $('#ancient-one-image1').attr('src', staticData[ancientOne.image]);
+    $('#ancient-one-image2').attr('src', staticData[ancientOne.imageback]);
+    $('#ancient-one-description').text(staticData[ancientOne.description]);
 }
 
 // Show the Popup and Populate Ancient Ones
@@ -29,8 +29,9 @@ async function populateAncientOnes() {
     }
 }
 
-// Show the Popup
+// Update ancientone.js
 function showAncientOnePopup(ancientOnes) {
+    showPopup('#ancient-one-popup');
     const $popup = $('#ancient-one-popup');
     const $ancientOneList = $('#ancient-one-list');
 
@@ -38,10 +39,16 @@ function showAncientOnePopup(ancientOnes) {
     $ancientOneList.empty();
 
     // Add each Ancient One to the list
-    ancientOnes.forEach((ancientOne) => {
-        const $div = $('<div>').text(ancientOne.name)
+    ancientOnes.forEach((ancientOne, index) => {
+        const $div = $('<div>').text(staticData[ancientOne.id + '.name'])
             .on('mouseover', () => displayAncientOneDetails(ancientOne))
             .on('click', () => selectAncientOne(ancientOne));
+
+        // Highlight the first item by default
+        if (index === 0) {
+            displayAncientOneDetails(ancientOne); // Show details for first item
+        }
+
         $ancientOneList.append($div);
     });
 
@@ -56,9 +63,9 @@ async function selectAncientOne(ancientOne) {
         url: '/api/ancient-one/select',
         method: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({name: ancientOne.name }),
+        data: JSON.stringify({id: ancientOne.id }),
     });
-    $('#ancient-one-popup').hide();
+    hideAllPopups();
 }
 
 // Log Messages to the Game Output

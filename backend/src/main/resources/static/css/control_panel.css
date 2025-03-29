@@ -81,3 +81,31 @@
 #lobby-players li:last-child {
     border-bottom: none;
 }
+
+/* Add to control_panel.css */
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #444;
+}
+
+.player-item:last-child {
+    border-bottom: none;
+}
+
+.kick-btn {
+    padding: 3px 8px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.kick-btn:hover {
+    background-color: #c9302c;
+}

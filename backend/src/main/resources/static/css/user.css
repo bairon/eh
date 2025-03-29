@@ -2,8 +2,8 @@
 .user-container {
     display: flex;
     align-items: center;
-    gap: 10px; /* Space between avatar and link */
-    margin-bottom: 20px; /* Space below the user container */
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 /* Avatar */
@@ -26,68 +26,105 @@
 
 /* Login / Logout Link */
 #auth-link-login, #auth-link-logout {
-    color: #4CAF50; /* Green color for the link */
+    color: #4CAF50;
     text-decoration: none;
     font-size: 16px;
     cursor: pointer;
 }
 
-#auth-link-login:hover {
-    text-decoration: underline;
-}
+#auth-link-login:hover,
 #auth-link-logout:hover {
     text-decoration: underline;
 }
-
+#auth-popup {
+    height: 450px;
+}
 /* Auth Popup Styles */
 #auth-popup .popup-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px; /* Adds spacing between elements */
+    gap: 10px;
 }
 
-#auth-popup #login-input, #password-input {
+/* Consistent input styling for both forms */
+#auth-popup #login-input,
+#auth-popup #password-input,
+#auth-popup #register-login,
+#auth-popup #register-password,
+#auth-popup #register-confirm-password {
     width: 50%;
-    padding: 8px;
-    margin-bottom: 10px; /* Adds space below the input */
+    padding: 10px;
+    margin-bottom: 10px;
     font-size: 16px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background-color: #333;
+    color: #f0f0f0;
 }
 
+/* Button container styling */
 #auth-popup .popup-buttons {
     display: flex;
-    gap: 10px; /* Adds spacing between buttons */
+    gap: 10px;
+    width: 80%;
+    justify-content: center;
 }
 
+/* Primary action buttons */
 #auth-popup .popup-buttons button {
-    padding: 8px 16px;
+    padding: 10px 20px;
     font-size: 14px;
     cursor: pointer;
     border: none;
     border-radius: 4px;
-    background-color: #007bff;
+    flex: 1;
+}
+
+#login-submit,
+#register-submit {
+    background-color: #4CAF50;
     color: white;
 }
 
-#auth-popup .popup-buttons button:hover {
-    background-color: #0056b3;
+#login-submit:hover,
+#register-submit:hover {
+    background-color: #45a049;
 }
 
-#auth-popup .popup-buttons button#auth-cancel {
-    background-color: #6c757d;
+/* Secondary buttons */
+#login-toggle,
+#register-cancel,
+#login-cancel {
+    background-color: #4CAF50;
+    color: white;
 }
 
-#auth-popup .popup-buttons button#auth-cancel:hover {
-    background-color: #5a6268;
+#login-toggle:hover,
+#register-cancel:hover,
+#login-cancel:hover {
+    background-color: #45a049;
 }
+
+/* Form toggle styling */
+#login-form,
+#register-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 /* OAuth Container */
 .oauth-container {
     margin-top: 20px;
     text-align: center;
+    width: 80%;
 }
 
 .oauth-container p {
     margin-bottom: 10px;
+    color: #f0f0f0;
 }
 
 .google-oauth-btn {
@@ -102,6 +139,7 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    width: 100%;
 }
 
 .google-oauth-btn:hover {
@@ -112,4 +150,3 @@
     width: 20px;
     height: 20px;
 }
-
