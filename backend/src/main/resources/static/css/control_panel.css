@@ -109,3 +109,80 @@
 .kick-btn:hover {
     background-color: #c9302c;
 }
+
+/* Add to control_panel.css */
+.game-state-container {
+    display: none;
+    flex-direction: column;
+    height: calc(100% - 200px); /* Adjust based on your layout */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.game-status-ongoing .game-state-container {
+    display: flex;
+}
+
+/* Ancient One Card - Modified for natural size */
+.ancient-one-card {
+    width: auto; /* Let it use natural width */
+    max-width: 100%; /* Don't exceed container width */
+    height: auto; /* Maintain aspect ratio */
+    max-height: none; /* Remove height restriction */
+    margin-bottom: 10px;
+    align-self: center; /* Center horizontally */
+}
+
+/* Adjust game state container */
+.game-state-container {
+    display: none;
+    flex-direction: column;
+    align-items: center; /* Center children horizontally */
+    gap: 15px;
+    padding: 10px;
+    overflow-y: auto; /* Allow scrolling if content is tall */
+}
+
+/* Other investigators container */
+.investigators-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Player investigator at bottom */
+.player-investigator {
+    width: auto; /* Natural width */
+    max-width: 100%;
+    height: auto;
+    margin-top: auto; /* Push to bottom */
+    align-self: center;
+}
+/* Other Player Investigator Cards */
+.other-investigator {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 2px solid #444;
+}
+
+/* Show game state when game is ongoing */
+.game-status-ongoing .game-state-container {
+    display: flex;
+}
+.game-status-ongoing .lobby-panel,
+.game-status-ongoing #select-investigator-btn,
+.game-status-ongoing #select-ancient-one-btn,
+.game-status-ongoing #start-game-btn {
+    display: none;
+}
+
+.ancient-one-card[src]:not([src=""]),
+.player-investigator[src]:not([src=""]) {
+    display: block !important;
+}
+
+
