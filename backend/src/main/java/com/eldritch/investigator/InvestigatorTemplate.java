@@ -6,76 +6,92 @@ public class InvestigatorTemplate {
     private String imageback;
     private String description;
     private String location;
-    private String property;
     private String bonus;
+    private int lore;
+    private int influence;
+    private int observation;
+    private int strength;
+    private int will;
+    private String clues;
+    private String assets;
+    private String spells;
 
     public InvestigatorTemplate() {
     }
 
-    // Constructor, getters, and setters
-    public InvestigatorTemplate(String id, String image, String imageback, String description, String location, String property, String bonus) {
+    public InvestigatorTemplate(String id, String image, String imageback, String description,
+                                String location, String bonus, int lore, int influence,
+                                int observation, int strength, int will, String clues,
+                                String assets, String spells) {
         this.id = id;
         this.image = image;
         this.imageback = imageback;
         this.description = description;
         this.location = location;
-        this.property = property;
         this.bonus = bonus;
+        this.lore = lore;
+        this.influence = influence;
+        this.observation = observation;
+        this.strength = strength;
+        this.will = will;
+        this.clues = clues;
+        this.assets = assets;
+        this.spells = spells;
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getImage() {
         return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
     }
 
     public String getImageback() {
         return imageback;
     }
 
-    public void setImageback(String imageback) {
-        this.imageback = imageback;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getProperty() {
-        return property;
-    }
-
-    public void setProperty(String property) {
-        this.property = property;
-    }
-
     public String getBonus() {
         return bonus;
     }
 
-    public void setBonus(String bonus) {
-        this.bonus = bonus;
+    public int getLore() {
+        return lore;
+    }
+
+    public int getInfluence() {
+        return influence;
+    }
+
+    public int getObservation() {
+        return observation;
+    }
+
+    public int getStrength() {
+        return strength;
+    }
+
+    public int getWill() {
+        return will;
+    }
+
+    public String getClues() {
+        return clues;
+    }
+
+    public String getAssets() {
+        return assets;
+    }
+
+    public String getSpells() {
+        return spells;
     }
 }

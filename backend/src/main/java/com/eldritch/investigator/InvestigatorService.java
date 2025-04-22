@@ -11,20 +11,35 @@ import java.util.Properties;
 public class InvestigatorService {
     public static final int INVESTIGATOR_SIZE = 12;
 
-    //private static final Logger logger = LoggerFactory.getLogger(InvestigatorService.class);
-
     public List<InvestigatorTemplate> getInvestigators() {
         Properties properties = ConfigService.getProperties("investigators.properties");
         List<InvestigatorTemplate> investigators = new ArrayList<>();
+
         for (int i = 1; i <= INVESTIGATOR_SIZE; i++) {
-            String id = properties.getProperty("investigator" + i + ".id");
-            String image = properties.getProperty("investigator" + i + ".image");
-            String imageback = properties.getProperty("investigator" + i + ".imageback");
-            String description = properties.getProperty("investigator" + i + ".description");
-            String location = properties.getProperty("investigator" + i + ".location");
-            String property = properties.getProperty("investigator" + i + ".property");
-            String bonus = properties.getProperty("investigator" + i + ".bonus");
-            investigators.add(new InvestigatorTemplate(id, image, imageback, description, location, property, bonus));
+            String prefix = "investigator" + i + ".";
+            String id = properties.getProperty(prefix + "id");
+            String image = properties.getProperty(prefix + "image");
+            String imageback = properties.getProperty(prefix + "imageback");
+            String description = properties.getProperty(prefix + "description");
+            String location = properties.getProperty(prefix + "location");
+            String bonus = properties.getProperty(prefix + "bonus", "");
+
+            int lore = Integer.parseInt(properties.getProperty(prefix + "lore", "0"));
+            int influence = Integer.parseInt(properties.getProperty(prefix + "influence", "0"));
+            int observation = Integer.parseInt(properties.getProperty(prefix + "observation", "0"));
+            int strength = Integer.parseInt(properties.getProperty(prefix + "strength", "0"));
+            int will = Integer.parseInt(properties.getProperty(prefix + "will", "0"));
+
+            String clues = properties.getProperty(prefix + "clues", "");
+            String assets = properties.getProperty(prefix + "assets", "");
+            String spells = properties.getProperty(prefix + "spells", "");
+
+            investigators.add(new InvestigatorTemplate(
+                    id, image, imageback, description,
+                    location, bonus,
+                    lore, influence, observation, strength, will,
+                    clues, assets, spells
+            ));
         }
 
         return investigators;

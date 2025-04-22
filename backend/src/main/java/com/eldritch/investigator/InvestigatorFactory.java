@@ -1,7 +1,7 @@
 package com.eldritch.investigator;
 
 public class InvestigatorFactory {
-    public InvBase create(String id) {
+    public static InvBase create(String id) {
         switch (id) {
             case "akachi": return new Akachi();
             case "charlie": return new Charlie();

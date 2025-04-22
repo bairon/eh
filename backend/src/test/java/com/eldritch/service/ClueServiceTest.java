@@ -15,7 +15,6 @@ public class ClueServiceTest {
     @BeforeMethod
     public void setUp() {
         clueService = new ClueService();
-        clueService.setCluesFile("clues");
 
     }
 

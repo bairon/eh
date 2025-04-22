@@ -19,6 +19,8 @@ public class GameSession {
     private GameStatus gameStatus;
     @JsonIgnore
     private Depo depo;
+    private boolean awaitingInteraction;
+    private Object currentInteractionType;
 
 
     public GameSession(String sessionId, String gameName) {
@@ -89,5 +91,29 @@ public class GameSession {
 
     public void setDepo(Depo depo) {
         this.depo = depo;
+    }
+
+    public boolean isAwaitingInteraction() {
+        return awaitingInteraction;
+    }
+
+    public void setAwaitingInteraction(boolean awaitingInteraction) {
+        this.awaitingInteraction = awaitingInteraction;
+    }
+
+    public Object getCurrentInteractionType() {
+        return currentInteractionType;
+    }
+
+    public void setCurrentInteractionType(Object currentInteractionType) {
+        this.currentInteractionType = currentInteractionType;
+    }
+
+    public boolean needsPhaseAdvancement() {
+        return false;
+    }
+
+    public int getPhaseDuration() {
+        return 0;
     }
 }

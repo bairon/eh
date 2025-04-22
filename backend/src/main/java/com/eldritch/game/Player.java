@@ -1,10 +1,12 @@
 package com.eldritch.game;
 
+import com.eldritch.investigator.InvBase;
+import com.eldritch.session.GameSession;
 import com.eldritch.user.UserData;
 
 import java.util.List;
 
-public class Player {
+public abstract class Player {
     private String playerId;
     private String name;
     private String location;
@@ -14,6 +16,26 @@ public class Player {
     private String investigatorName;
     private boolean master;
     private String investigatorId;
+    private InvBase investigator;
+    protected PlayerType type;
+    private List<Spell> spells;
+
+    public List<Spell> getSpells() {
+        return spells;
+    }
+
+    public void setSpells(List<Spell> spells) {
+        this.spells = spells;
+    }
+
+    public enum PlayerType {
+        HUMAN,
+        BOT_EASY,
+        BOT_MEDIUM,
+        BOT_HARD
+    }
+
+    public abstract void handleGameStateUpdate(GameSession session);
 
     public Player() {
     }
@@ -111,6 +133,14 @@ public class Player {
 
     public String getInvestigatorId() {
         return investigatorId;
+    }
+
+    public void setInvestigator(InvBase investigator) {
+        this.investigator = investigator;
+    }
+
+    public InvBase getInvestigator() {
+        return investigator;
     }
 // Getters and Setters
 }
