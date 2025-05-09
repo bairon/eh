@@ -31,8 +31,8 @@ public class SecurityConfig {
                 )
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF protection
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/assets/**", "/favicon.ico").permitAll() // Allow access to static resources
-                        .requestMatchers("/eldritch-websocket", "/eldritch-websocket/**").permitAll() // Allow WebSocket connections
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/assets/**", "/favicon.ico", "/quiz.html", "/quiz/**").permitAll() // Allow access to static resources
+                        .requestMatchers("/eldritch-websocket", "/eldritch-websocket/**", "/quiz-ws", "/quiz-ws/**", "/topic/quiz", "/app/quiz/**").permitAll() // Allow WebSocket connections
                         .requestMatchers("/api/auth/**").permitAll() // Allow custom login
                         .requestMatchers("/api/static/**").permitAll() // Allow custom login
                         .requestMatchers("/api/user").permitAll() // Allow custom login

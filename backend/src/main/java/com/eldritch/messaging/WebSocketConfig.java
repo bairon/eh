@@ -12,12 +12,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic"); // Prefix for messages sent to clients
-        config.setApplicationDestinationPrefixes("/app"); // Prefix for messages sent from clients
+        config.enableSimpleBroker("/topic");
+        config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/eldritch-websocket").withSockJS(); // WebSocket endpoint
+        registry.addEndpoint("/quiz-ws")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 }

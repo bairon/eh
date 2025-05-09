@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Game</title>
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        #quiz-join {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #quiz-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        #quiz-nickname {
+            padding: 12px;
+            width: 250px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        #quiz-join-btn {
+            padding: 12px 25px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+
+        #quiz-join-btn:hover {
+            background: #45a049;
+        }
+
+        #quiz-players {
+            background: #f9f9f9;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+
+        .player {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+        }
+
+        .player.active {
+            background: #e6f7ff;
+            border-left: 4px solid #2196F3;
+            font-weight: bold;
+        }
+
+        .player .score {
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        #quiz-question-container {
+            background: #f9f9f9;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        #quiz-options {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0 0 0;
+        }
+
+        #quiz-options li {
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #quiz-options li:hover {
+            background: #f0f0f0;
+        }
+
+        #quiz-result {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .correct-answer {
+            color: #2e7d32;
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .incorrect-answer {
+            color: #c62828;
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #f44336;
+        }
+        #quiz-winner {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fff8e1;
+            border: 1px solid #ffd54f;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status-message {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 15px;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<div id="quiz-join">
+    <h1>Welcome to the Quiz Game!</h1>
+    <p>Enter your nickname to join the game. The quiz will start when 3 players have joined.</p>
+    <div style="margin: 30px 0;">
+        <input type="text" id="quiz-nickname" placeholder="Your nickname" autocomplete="off">
+        <button id="quiz-join-btn">Join Quiz</button>
+    </div>
+    <div id="connection-status" class="status-message">Connecting to server...</div>
+</div>
+
+<div id="quiz-container">
+    <h1>Quiz Game</h1>
+
+    <div id="quiz-players-container">
+        <h2>Players</h2>
+        <div id="quiz-players">
+            <div class="status-message">Waiting for players to join...</div>
+        </div>
+    </div>
+
+    <div id="quiz-question-container">
+        <h3 id="quiz-current-player"></h3>
+        <div id="quiz-question"></div>
+        <ul id="quiz-options"></ul>
+    </div>
+
+    <div id="quiz-result"></div>
+    <div id="quiz-winner"></div>
+</div>
+
+<!-- Using local JS files -->
+<script src="js/jquery-3.6.0.min.js"></script>
+<script src="js/jquery-ui-1.12.1.min.js"></script>
+<script src="js/sockjs.min.js"></script>
+<script src="js/stomp.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        let quizPlayerId = localStorage.getItem('quizPlayerId');
+        let currentLobbyId = localStorage.getItem('quizLobbyId');
+        let stompClient = null;
+        let currentPlayers = [];
+        let currentQuestion = null;
+
+        // Initialize connection immediately if we have stored IDs
+        if (quizPlayerId && currentLobbyId) {
+            connectQuizWebSocket();
+        }
+
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 5;
+        let storedPlayerId = localStorage.getItem('quizPlayerId');
+
+        $('#quiz-join-btn').click(joinQuiz);
+        $('#quiz-nickname').keypress(function(e) {
+            if (e.which === 13) joinQuiz();
+        });
+
+        function joinQuiz() {
+            const nickname = $('#quiz-nickname').val().trim();
+            if (nickname.length < 2) {
+                alert('Please enter a nickname (at least 2 characters)');
+                return;
+            }
+
+            $('#quiz-join-btn').prop('disabled', true).text('Joining...');
+
+            // Clear any existing connection if we're rejoining
+            if (stompClient && stompClient.connected) {
+                stompClient.disconnect();
+            }
+
+            $.post('/quiz/join', { nickname: nickname })
+                .done(function(response) {
+                    quizPlayerId = response.player.id;
+                    currentLobbyId = response.lobbyId;
+
+                    localStorage.setItem('quizPlayerId', quizPlayerId);
+                    localStorage.setItem('quizLobbyId', currentLobbyId);
+
+                    $('#quiz-join').hide();
+                    $('#quiz-container').show();
+                    $('#connection-status').text('Connected as: ' + nickname);
+
+                    connectQuizWebSocket();
+                })
+                .fail(function(error) {
+                    alert('Error joining quiz: ' + (error.responseText || 'Server unavailable'));
+                    $('#quiz-join-btn').prop('disabled', false).text('Join Quiz');
+                });
+        }
+
+        function connectQuizWebSocket() {
+            const socket = new SockJS('/quiz-ws');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function(frame) {
+                console.log('WebSocket connected:', frame);
+                reconnectAttempts = 0; // Reset reconnect attempts
+
+                // Subscribe to our specific lobby topic
+                stompClient.subscribe('/topic/quiz/' + currentLobbyId, function(message) {
+                    try {
+                        const data = JSON.parse(message.body);
+                        handleQuizMessage(data);
+                    } catch (e) {
+                        console.error('Error processing message:', e);
+                    }
+                });
+
+                // Immediately send reconnect if we have a player ID
+                if (quizPlayerId) {
+                    setTimeout(() => { // Small delay to ensure subscription is ready
+                        stompClient.send(
+                            "/app/quiz/" + currentLobbyId + "/reconnect",
+                            {},
+                            quizPlayerId
+                        );
+                    }, 300);
+                }
+            }, function(error) {
+                console.error('Connection error:', error);
+                if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                    reconnectAttempts++;
+                    const delay = Math.min(1000 * reconnectAttempts, 5000);
+                    console.log(`Reconnecting in ${delay}ms...`);
+                    setTimeout(connectQuizWebSocket, delay);
+                } else {
+                    $('#connection-status').text('Disconnected - please refresh');
+                    // Clear stored IDs if we can't reconnect
+                    localStorage.removeItem('quizPlayerId');
+                    localStorage.removeItem('quizLobbyId');
+                }
+            });
+        }
+        function updatePlayerList(players) {
+            console.log('Received players:', players); // Debug log
+            const container = $('#quiz-players');
+            container.empty();
+
+            if (!players || players.length === 0) {
+                console.log('No players received'); // Debug log
+                container.append('<div class="status-message">Waiting for players to join...</div>');
+                return;
+            }
+
+            players.forEach(player => {
+                console.log('Processing player:', player); // Debug log
+                const isYou = player.id === quizPlayerId ? ' (You)' : '';
+                const playerEl = $(`
+            <div class="player ${player.active ? 'active' : ''}">
+                <span class="nickname">${player.nickname}${isYou}</span>
+                <span class="score">${player.score} pts</span>
+            </div>
+        `);
+                container.append(playerEl);
+            });
+        }
+        function handleQuizMessage(message) {
+            console.log('Full message:', message);
+
+            // Always update connection status if content exists
+            if (message.content) {
+                $('#connection-status').text(message.content);
+            }
+
+            // Handle player updates for all relevant message types
+            if (message.type === 'JOIN' || message.type === 'UPDATE' || message.type === 'RECONNECT') {
+                if (message.players && Array.isArray(message.players)) {
+                    console.log('Updating player list:', message.players);
+                    updatePlayerList(message.players);
+                }
+            }
+
+            // Handle other message types
+            switch(message.type) {
+                case 'QUESTION':
+                case 'RECONNECT': // Handle reconnect with question
+                    if (message.question && message.player) {
+                        currentQuestion = message.question;
+                        showQuizQuestion(message.player, message.question);
+                    }
+                    break;
+                case 'ANSWER':
+                    showAnswerResult(message);
+                    break;
+                case 'WIN':
+                    showWinner(message.winner);
+                    break;
+            }
+        }
+
+        function showQuizQuestion(player, question) {
+            $('#quiz-current-player').text(`${player.nickname}'s turn:`);
+            $('#quiz-question').text(question.text);
+
+            const options = $('#quiz-options').empty();
+            question.options.forEach((option, index) => {
+                const li = $('<li></li>')
+                    .text(option)
+                    .click(function() {
+                        if (player.id === quizPlayerId) {
+                            $(this).addClass('ui-state-active');
+                            stompClient.send("/app/quiz/" + currentLobbyId + "/answer", {},
+                                JSON.stringify({
+                                    playerId: quizPlayerId,
+                                    answerIndex: index
+                                })
+                            );
+                        }
+                    });
+                options.append(li);
+            });
+
+            $('#quiz-question-container').show();
+            $('#quiz-result').hide();
+            $('#quiz-winner').hide();
+        }
+
+
+        function showAnswerResult(message) {
+            const resultDiv = $('#quiz-result');
+            const options = message.question.options;
+            const selectedText = options[message.selectedAnswer];
+            const correctText = options[message.question.correctOption];
+
+            console.log('Answer debug:', {
+                isCorrect: message.isCorrect,
+                selectedIndex: message.selectedAnswer,
+                correctIndex: message.question.correctOption,
+                selectedText: selectedText,
+                correctText: correctText
+            });
+
+            // Clear previous state
+            resultDiv.removeClass('correct incorrect').empty();
+
+            if (message.correct === true) {
+                resultDiv.append(`
+            <div class="correct-answer">
+                <h3>✅ Correct Answer!</h3>
+                <p>${message.player.nickname} selected: <strong>${selectedText}</strong></p>
+                <p>+1 point!</p>
+            </div>
+        `).addClass('correct');
+            } else {
+                resultDiv.append(`
+            <div class="incorrect-answer">
+                <h3>❌ Incorrect Answer</h3>
+                <p>${message.player.nickname} selected: <strong>${selectedText}</strong></p>
+                <p>Correct answer was: <strong>${correctText}</strong></p>
+            </div>
+        `).addClass('incorrect');
+            }
+
+            $('#quiz-question-container').hide();
+            resultDiv.show();
+            updatePlayerList(message.players || currentPlayers);
+        }
+
+
+        function showWinner(winner) {
+            $('#quiz-winner').html(`
+                    <h2>🎉 Quiz Winner! 🎉</h2>
+                    <p><strong>${winner.nickname}</strong> wins with ${winner.score} points!</p>
+                    <p>Game will restart soon...</p>
+                `).show();
+
+            $('#quiz-question-container').hide();
+            $('#quiz-result').hide();
+        }
+    });
+</script>
+</body>
+</html>
