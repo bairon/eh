@@ -1,11 +1,9 @@
 package com.eldritch.quiz;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -13,19 +11,16 @@ public class LobbyManager {
     private final ConcurrentHashMap<String, Lobby> activeLobbies = new ConcurrentHashMap<>();
     private Lobby availableLobby;
     private final SimpMessagingTemplate messagingTemplate;
-    private final ObjectProvider<Lobby> lobbyProvider;
 
     @Autowired
-    public LobbyManager(SimpMessagingTemplate messagingTemplate,
-                        ObjectProvider<Lobby> lobbyProvider) {
+    public LobbyManager(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
-        this.lobbyProvider = lobbyProvider;
         getAvailableLobby();
     }
 
     public synchronized Lobby getAvailableLobby() {
         if (availableLobby == null) {
-            availableLobby = lobbyProvider.getObject(this.messagingTemplate, UUID.randomUUID().toString());
+            availableLobby = new Lobby(this.messagingTemplate);
         }
         return availableLobby;
     }

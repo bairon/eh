@@ -1,11 +1,7 @@
 package com.eldritch.quiz;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -13,11 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)  // Add this line
 public class QuizService {
     private static final int QUIZ_WIN_SCORE = 5;
-    private static final int QUIZ_PLAYERS_REQUIRED = 2;
+    private static final int QUIZ_PLAYERS_REQUIRED = 1;
 
     private final ConcurrentMap<String, QuizPlayer> players = new ConcurrentHashMap<>();
     private final BlockingQueue<QuizPlayer> playerQueue = new LinkedBlockingQueue<>();
@@ -70,18 +64,11 @@ public class QuizService {
     public ArrayList<QuizPlayer> getActivePlayers() {
         return new ArrayList<>(players.values());
     }
-    private void sendPlayerUpdate() {
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.UPDATE);
-        message.setPlayers(new ArrayList<>(players.values()));
-        messagingTemplate.convertAndSend("/topic/quiz", message);
-    }
 
     // Add to class fields
-
     private QuizQuestion currentQuestion;
-    // Modify startQuiz() method:
 
+    // Modify startQuiz() method:
     private void startQuiz() {
         System.out.println("Starting Quiz");
         quizRunning = true;
@@ -112,16 +99,9 @@ public class QuizService {
             }
         }).start();
     }
+
     public void quizCycle() {
 
-    }
-
-    private void sendQuestion(QuizPlayer player, QuizQuestion question) {
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.QUESTION);
-        message.setPlayer(player);
-        message.setQuestion(question);
-        messagingTemplate.convertAndSend("/topic/quiz", message);
     }
 
     // Add this class field to track answered players
@@ -166,13 +146,40 @@ public class QuizService {
             }).start();
         }
     }
+
+    private void sendPlayerUpdate() {
+        QuizMessage message = new QuizMessage();
+        message.setType(QuizMessage.MessageType.UPDATE);
+        message.setPlayers(new ArrayList<>(players.values()));
+        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+    }
+
+    private void sendQuestion(QuizPlayer player, QuizQuestion question) {
+        QuizMessage message = new QuizMessage();
+        message.setType(QuizMessage.MessageType.QUESTION);
+        message.setPlayer(player);
+        message.setQuestion(question);
+        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+    }
+
+    private void sendAnswerResult(QuizPlayer player, int answerIndex, boolean isCorrect, QuizQuestion question) {
+        QuizMessage message = new QuizMessage();
+        message.setType(QuizMessage.MessageType.ANSWER);
+        message.setPlayer(player);
+        message.setSelectedAnswer(answerIndex);
+        message.setCorrect(isCorrect);
+        message.setQuestion(question);
+        message.setPlayers(new ArrayList<>(players.values()));
+        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+    }
+
     private void endQuiz(QuizPlayer winner) {
         quizRunning = false;
         QuizMessage message = new QuizMessage();
         message.setType(QuizMessage.MessageType.WIN);
         message.setWinner(winner);
         message.setPlayers(new ArrayList<>(players.values()));
-        messagingTemplate.convertAndSend("/topic/quiz", message);
+        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
         players.clear();
         playerQueue.clear();
     }
@@ -181,29 +188,9 @@ public class QuizService {
         Random random = new Random();
         return questions.get(random.nextInt(questions.size()));
     }
+
     public QuizQuestion getCurrentQuestion() {
         return currentQuestion; // Return the stored current question
-    }
-
-    private void sendAnswerResult(QuizPlayer player, int answerIndex, boolean isCorrect, QuizQuestion question) {
-        System.out.println("\n=== Answer Result ===");
-        System.out.println("Player: " + player.getNickname());
-        System.out.println("Question: " + question.getText());
-        System.out.println("Options: " + question.getOptions());
-        System.out.println("Selected: " + answerIndex + " (" + question.getOptions().get(answerIndex) + ")");
-        System.out.println("Correct: " + question.getCorrectOption() + " (" +
-                question.getOptions().get(question.getCorrectOption()) + ")");
-        System.out.println("IsCorrect: " + isCorrect);
-
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.ANSWER);
-        message.setPlayer(player);
-        message.setSelectedAnswer(answerIndex);
-        message.setCorrect(isCorrect);
-        message.setQuestion(question);
-        message.setPlayers(new ArrayList<>(players.values()));
-
-        messagingTemplate.convertAndSend("/topic/quiz", message);
     }
 
     public Collection<QuizPlayer> getPlayers() {
