@@ -253,32 +253,33 @@
             const socket = new SockJS('/quiz-ws');
             stompClient = Stomp.over(socket);
 
-            stompClient.connect({}, function(frame) {
-                console.log('WebSocket connected:', frame);
-                reconnectAttempts = 0; // Reset reconnect attempts
+            const headers = {
+                'playerId': quizPlayerId,
+                'lobbyId': currentLobbyId
+            };
 
-                // Subscribe to our specific lobby topic
+            stompClient.connect(headers, function(frame) {
+                console.log('WebSocket connected:', frame);
+                reconnectAttempts = 0;
+
+                // Subscribe first
                 stompClient.subscribe('/topic/quiz/' + currentLobbyId, function(message) {
-                    try {
-                        const data = JSON.parse(message.body);
-                        handleQuizMessage(data);
-                    } catch (e) {
-                        console.error('Error processing message:', e);
-                    }
+                    handleQuizMessage(JSON.parse(message.body));
                 });
 
-                // Immediately send reconnect if we have a player ID
-                if (quizPlayerId) {
-                    setTimeout(() => { // Small delay to ensure subscription is ready
-                        stompClient.send(
-                            "/app/quiz/" + currentLobbyId + "/reconnect",
-                            {},
-                            quizPlayerId
-                        );
-                    }, 300);
-                }
+                // Then request full game state
+                stompClient.send(
+                    "/app/quiz/" + currentLobbyId + "/rejoin/" + quizPlayerId,
+                    {},
+                    JSON.stringify({}) // Empty payload
+                );
+
+                $('#connection-status').text('Reconnected!');
+                $('#quiz-join').hide();
+                $('#quiz-container').show();
+
             }, function(error) {
-                console.error('Connection error:', error);
+                    console.error('Connection error:', error);
                 if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
                     reconnectAttempts++;
                     const delay = Math.min(1000 * reconnectAttempts, 5000);
@@ -316,25 +317,17 @@
             });
         }
         function handleQuizMessage(message) {
-            console.log('Full message:', message);
-
-            // Always update connection status if content exists
-            if (message.content) {
-                $('#connection-status').text(message.content);
-            }
-
-            // Handle player updates for all relevant message types
-            if (message.type === 'JOIN' || message.type === 'UPDATE' || message.type === 'RECONNECT') {
-                if (message.players && Array.isArray(message.players)) {
-                    console.log('Updating player list:', message.players);
-                    updatePlayerList(message.players);
-                }
-            }
-
-            // Handle other message types
+            // Remove reconnect-specific handling
             switch(message.type) {
+                case 'CONNECTED':
+                case 'REJOIN':  // Handle both cases similarly
+                    updatePlayerList(message.players);
+                    if (message.question && message.player) {
+                        currentQuestion = message.question;
+                        showQuizQuestion(message.player, message.question);
+                    }
+                    break;
                 case 'QUESTION':
-                case 'RECONNECT': // Handle reconnect with question
                     if (message.question && message.player) {
                         currentQuestion = message.question;
                         showQuizQuestion(message.player, message.question);

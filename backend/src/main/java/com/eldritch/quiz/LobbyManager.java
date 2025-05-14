@@ -40,10 +40,10 @@ public class LobbyManager {
     }
 
     public Lobby join(String nickname) {
-        Lobby ret = availableLobby;
-        availableLobby.addPlayer(nickname);
-        if (availableLobby.isFull()) {
-            lobbyStartedGame();
+        Lobby ret = getAvailableLobby();  // Get current available lobby
+        ret.addPlayer(nickname);          // Add player to it
+        if (ret.isFull()) {               // Check if it's full
+            lobbyStartedGame();           // Move to active if full
         }
         return ret;
     }

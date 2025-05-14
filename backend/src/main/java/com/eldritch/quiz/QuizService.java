@@ -1,6 +1,8 @@
 package com.eldritch.quiz;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.*;
@@ -10,7 +12,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class QuizService {
-    private static final int QUIZ_WIN_SCORE = 5;
+    public static final int QUIZ_WIN_SCORE = 5;
     private static final int QUIZ_PLAYERS_REQUIRED = 1;
 
     private final ConcurrentMap<String, QuizPlayer> players = new ConcurrentHashMap<>();
@@ -33,6 +35,7 @@ public class QuizService {
             new QuizQuestion("What is the largest ocean on Earth?",
                     List.of("Atlantic", "Indian", "Arctic", "Pacific"), 3)
     );
+    private Thread quizThread = null;
 
     public QuizService(SimpMessagingTemplate messagingTemplate, String lobbyId) {
         this.messagingTemplate = messagingTemplate;
@@ -69,9 +72,11 @@ public class QuizService {
     private QuizQuestion currentQuestion;
 
     // Modify startQuiz() method:
-    private void startQuiz() {
+
+    public void startQuiz() {
         System.out.println("Starting Quiz");
         quizRunning = true;
+
         new Thread(() -> {
             try {
                 while (quizRunning) {
@@ -83,7 +88,7 @@ public class QuizService {
 
                     // Wait for answer
                     synchronized (currentPlayer) {
-                        currentPlayer.wait(90000);
+                        currentPlayer.wait(10000);
                     }
 
                     currentPlayer.setActive(false);
@@ -108,6 +113,8 @@ public class QuizService {
     private final Set<String> answeredPlayers = Collections.synchronizedSet(new HashSet<>());
 
     public synchronized void processAnswer(String playerId, int answerIndex) {
+        System.out.println("Process answer: " + answerIndex);
+        System.out.println("Current Question: " + currentQuestion);
         if (!quizRunning || currentPlayer == null || !currentPlayer.getId().equals(playerId)) {
             return;
         }
@@ -116,35 +123,39 @@ public class QuizService {
         if (answeredPlayers.contains(playerId)) {
             return;
         }
+
+        // Add null check for currentQuestion
+        if (currentQuestion == null) {
+            return;
+        }
+
         answeredPlayers.add(playerId);
 
-        // Use the stored currentQuestion instead of getting a new one
-        if (currentQuestion != null) {
-            boolean isCorrect = answerIndex == currentQuestion.getCorrectOption();
+        boolean isCorrect = answerIndex == currentQuestion.getCorrectOption();
 
-            if (isCorrect) {
-                currentPlayer.setScore(currentPlayer.getScore() + 1);
+        if (isCorrect) {
+            currentPlayer.setScore(currentPlayer.getScore() + 1);
+            // Check for win condition immediately after updating score
+            if (currentPlayer.getScore() >= QUIZ_WIN_SCORE) {
+                endQuiz(currentPlayer);
+                return;  // Exit early since quiz has ended
             }
-
-            // Broadcast the answer to all players
-            sendAnswerResult(currentPlayer, answerIndex, isCorrect, currentQuestion);
-
-            // Check if all players have answered (if you want to wait for everyone)
-            // Or just add a delay before next question
-            new Thread(() -> {
-                try {
-                    // Wait 3 seconds to show the answer
-                    Thread.sleep(3000);
-
-                    synchronized (currentPlayer) {
-                        answeredPlayers.remove(playerId); // Clear for next question
-                        currentPlayer.notify(); // Continue the game loop
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
         }
+
+        // Broadcast the answer to all players
+        sendAnswerResult(currentPlayer, answerIndex, isCorrect, currentQuestion);
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+                synchronized (currentPlayer) {
+                    answeredPlayers.remove(playerId);
+                    currentPlayer.notify();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
     }
 
     private void sendPlayerUpdate() {
@@ -155,6 +166,7 @@ public class QuizService {
     }
 
     private void sendQuestion(QuizPlayer player, QuizQuestion question) {
+        System.out.println("Sending question " + question + " to a player " + player);
         QuizMessage message = new QuizMessage();
         message.setType(QuizMessage.MessageType.QUESTION);
         message.setPlayer(player);
@@ -173,7 +185,7 @@ public class QuizService {
         messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
     }
 
-    private void endQuiz(QuizPlayer winner) {
+    public void endQuiz(QuizPlayer winner) {
         quizRunning = false;
         QuizMessage message = new QuizMessage();
         message.setType(QuizMessage.MessageType.WIN);

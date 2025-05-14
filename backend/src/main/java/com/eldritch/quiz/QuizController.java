@@ -1,5 +1,7 @@
 package com.eldritch.quiz;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
@@ -15,11 +17,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class QuizController {
-
+    private static final Logger logger = LogManager.getLogger(QuizController.class);
     private final LobbyManager lobbyManager;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -33,11 +38,9 @@ public class QuizController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> joinQuiz(
             @RequestParam String nickname) {
-
-        // Get or create an available lobby
-        Lobby lobby = lobbyManager.join(nickname);
-
         try {
+            // Get or create an available lobby
+            Lobby lobby = lobbyManager.join(nickname);
 
             // Prepare response with both player and lobby info
             Map<String, Object> response = new HashMap<>();
@@ -52,11 +55,17 @@ public class QuizController {
             messagingTemplate.convertAndSend("/topic/quiz/" + lobby.getId(), message);
 
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException e) {
+            // Log the exception
+            logger.error("Failed to join quiz for nickname: " + nickname, e);
+
+            // Return more detailed error information
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to join quiz");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
-
     @MessageMapping("/quiz/{lobbyId}/state")
     @SendTo("/topic/quiz/{lobbyId}")
     public QuizMessage sendLobbyState(
@@ -73,27 +82,44 @@ public class QuizController {
         return null;
     }
 
-    @MessageMapping("/quiz/{lobbyId}/reconnect")
+    @MessageMapping("/quiz/connect/{lobbyId}/{playerId}")
     @SendTo("/topic/quiz/{lobbyId}")
-    public QuizMessage handleReconnect(
+    public QuizMessage handleConnect(
             @DestinationVariable String lobbyId,
-            @Payload String playerId) {
+            @DestinationVariable String playerId) {
+
+        Lobby lobby = lobbyManager.getLobby(lobbyId);
+        if (lobby != null && lobby.getGameInstance().getPlayer(playerId) != null) {
+            QuizMessage message = new QuizMessage();
+            message.setType(QuizMessage.MessageType.CONNECTED);
+            message.setPlayers(new ArrayList<>(lobby.getPlayers()));
+            message.setContent("Player reconnected");
+            return message;
+        }
+        return null;
+    }
+
+
+    @MessageMapping("/quiz/{lobbyId}/rejoin/{playerId}")
+    @SendTo("/topic/quiz/{lobbyId}")
+    public QuizMessage handleRejoin(
+            @DestinationVariable String lobbyId,
+            @DestinationVariable String playerId) {
 
         Lobby lobby = lobbyManager.getLobby(lobbyId);
         if (lobby != null) {
             QuizPlayer player = lobby.getGameInstance().getPlayer(playerId);
             if (player != null) {
+                // Create full state message
                 QuizMessage message = new QuizMessage();
-                message.setType(QuizMessage.MessageType.RECONNECT);
-
-                // Ensure we're sending all players, not just the reconnected one
+                message.setType(QuizMessage.MessageType.REJOIN);
                 message.setPlayers(new ArrayList<>(lobby.getPlayers()));
-                message.setContent(player.getNickname() + " reconnected");
+                message.setContent(player.getNickname() + " rejoined");
 
-                if (lobby.getGameInstance().isQuizRunning() &&
-                        lobby.getGameInstance().getCurrentPlayer() != null &&
-                        lobby.getGameInstance().getCurrentPlayer().getId().equals(playerId)) {
+                // Include current question if game is active
+                if (lobby.getGameInstance().isQuizRunning()) {
                     message.setQuestion(lobby.getGameInstance().getCurrentQuestion());
+                    message.setPlayer(lobby.getGameInstance().getCurrentPlayer());
                 }
 
                 return message;
@@ -101,6 +127,7 @@ public class QuizController {
         }
         return null;
     }
+
     @MessageMapping("/quiz/state")
     @SendTo("/topic/quiz")
     public QuizMessage sendInitialState() {

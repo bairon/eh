@@ -36,5 +36,14 @@ public class QuizQuestion {
     public void setCorrectOption(int correctOption) {
         this.correctOption = correctOption;
     }
+
+    @Override
+    public String toString() {
+        return "QuizQuestion{" +
+                "text='" + text + '\'' +
+                ", options=" + options +
+                ", correctOption=" + correctOption +
+                '}';
+    }
 }
 
