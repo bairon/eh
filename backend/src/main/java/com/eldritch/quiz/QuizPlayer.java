@@ -16,6 +16,10 @@ public class QuizPlayer {
         this.active = active;
     }
 
+    public void incrementScore() {
+        score++;
+    }
+
     public String getId() {
         return id;
     }
@@ -43,17 +47,16 @@ public class QuizPlayer {
     public boolean isActive() {
         return active;
     }
-
     public void setActive(boolean active) {
         this.active = active;
     }
     // Add this to prevent serialization issues
+
     @Override
     public String toString() {
         return String.format("Player[id=%s, nickname=%s, score=%d, active=%b]",
                 id, nickname, score, active);
     }
-
 }
 
 

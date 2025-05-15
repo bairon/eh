@@ -13,7 +13,7 @@ public class QuizMessage {
     private ArrayList<QuizPlayer> players;
 
     public enum MessageType {
-        JOIN, START, QUESTION, ANSWER, WIN, ERROR, RECONNECT, CONNECTED, REJOIN, UPDATE
+        JOIN, START, QUESTION, ANSWER, WIN, ERROR, RECONNECT, CONNECTED, REJOIN, WRONG_ANSWER, CORRECT_ANSWER, UPDATE
     }
 
     public void setPlayers(ArrayList<QuizPlayer> players) {

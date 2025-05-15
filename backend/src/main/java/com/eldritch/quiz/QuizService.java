@@ -6,22 +6,32 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class QuizService {
-    public static final int QUIZ_WIN_SCORE = 5;
-    private static final int QUIZ_PLAYERS_REQUIRED = 1;
 
-    private final ConcurrentMap<String, QuizPlayer> players = new ConcurrentHashMap<>();
-    private final BlockingQueue<QuizPlayer> playerQueue = new LinkedBlockingQueue<>();
-    private QuizPlayer currentPlayer;
-    private boolean quizRunning = false;
+    // Configuration Constants
+    public static final int QUIZ_WIN_SCORE = 5;
+    private static final int QUIZ_PLAYERS_REQUIRED = 2;
+    private static final int TEN_SECONDS = 10000;
+    private static final int FIVE_SECONDS = 5000;
+
+    // Infrastructure
     private final SimpMessagingTemplate messagingTemplate;
     private final String lobbyId;
 
+    //State
+    private final ConcurrentMap<String, QuizPlayer> players = new ConcurrentHashMap<>();
+    private final Queue<QuizPlayer> playerQueue = new ConcurrentLinkedQueue<>();
+    private QuizPlayer currentPlayer;
+    private boolean quizRunning = false;
+    private QuizQuestion currentQuestion;
+    private boolean answerGiven;
+    int answerIndex = 1;
+    private boolean answerCorrect;
+    private QuizMessage message;
+    private QuizPlayer winner;
+    private int waitTimeout;
 
     private final List<QuizQuestion> questions = List.of(
             new QuizQuestion("What is the capital of France?",
@@ -35,7 +45,6 @@ public class QuizService {
             new QuizQuestion("What is the largest ocean on Earth?",
                     List.of("Atlantic", "Indian", "Arctic", "Pacific"), 3)
     );
-    private Thread quizThread = null;
 
     public QuizService(SimpMessagingTemplate messagingTemplate, String lobbyId) {
         this.messagingTemplate = messagingTemplate;
@@ -68,94 +77,71 @@ public class QuizService {
         return new ArrayList<>(players.values());
     }
 
-    // Add to class fields
-    private QuizQuestion currentQuestion;
-
     // Modify startQuiz() method:
 
     public void startQuiz() {
         System.out.println("Starting Quiz");
         quizRunning = true;
 
-        new Thread(() -> {
-            try {
-                while (quizRunning) {
-                    currentPlayer = playerQueue.take();
-                    currentPlayer.setActive(true);
-                    currentQuestion = getRandomQuestion(); // Store the current question
-                    sendPlayerUpdate();
-                    sendQuestion(currentPlayer, currentQuestion); // Send the stored question
-
-                    // Wait for answer
-                    synchronized (currentPlayer) {
-                        currentPlayer.wait(10000);
-                    }
-
-                    currentPlayer.setActive(false);
-                    playerQueue.add(currentPlayer);
-
-                    if (currentPlayer.getScore() >= QUIZ_WIN_SCORE) {
-                        endQuiz(currentPlayer);
-                        break;
+        Thread quizThread = new Thread(() -> {
+            while (quizRunning) {
+                quizCycle();
+                if (message != null) {
+                    messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+                }
+                synchronized (playerQueue) {
+                    try {
+                        playerQueue.wait(waitTimeout);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
             }
-        }).start();
+        });
+        quizThread.start();
     }
 
     public void quizCycle() {
-
+        if (quizRunning) {
+            sendPlayerUpdate();
+            waitTimeout = TEN_SECONDS;
+            if (currentPlayer != null && currentPlayer.getScore() >= QUIZ_WIN_SCORE) {
+                quizRunning = false;
+                winner = currentPlayer;
+                currentPlayer = null;
+                prepareWinMessage();
+                return;
+            }
+            if (currentQuestion != null && answerGiven) {
+                answerCorrect = answerIndex == currentQuestion.getCorrectOption();
+                if (answerCorrect) {
+                    currentPlayer.incrementScore();
+                }
+                prepareAnswerMessage();
+                currentQuestion = null;
+                answerIndex = -1;
+                answerGiven = false;
+                waitTimeout = FIVE_SECONDS;
+                return;
+            }
+            if (currentQuestion == null) {
+                if (currentPlayer != null) {
+                    currentPlayer.setActive(false);
+                }
+                currentPlayer = playerQueue.poll();
+                playerQueue.add(currentPlayer);
+                currentQuestion = getRandomQuestion();
+                prepareQuestionMessage();
+                return;
+            }
+        }
     }
 
-    // Add this class field to track answered players
-    private final Set<String> answeredPlayers = Collections.synchronizedSet(new HashSet<>());
+    private void prepareWinMessage() {
+        message = new QuizMessage();
+        message.setType(QuizMessage.MessageType.WIN);
+        message.setWinner(winner);
 
-    public synchronized void processAnswer(String playerId, int answerIndex) {
-        System.out.println("Process answer: " + answerIndex);
-        System.out.println("Current Question: " + currentQuestion);
-        if (!quizRunning || currentPlayer == null || !currentPlayer.getId().equals(playerId)) {
-            return;
-        }
-
-        // Prevent multiple answers from same player
-        if (answeredPlayers.contains(playerId)) {
-            return;
-        }
-
-        // Add null check for currentQuestion
-        if (currentQuestion == null) {
-            return;
-        }
-
-        answeredPlayers.add(playerId);
-
-        boolean isCorrect = answerIndex == currentQuestion.getCorrectOption();
-
-        if (isCorrect) {
-            currentPlayer.setScore(currentPlayer.getScore() + 1);
-            // Check for win condition immediately after updating score
-            if (currentPlayer.getScore() >= QUIZ_WIN_SCORE) {
-                endQuiz(currentPlayer);
-                return;  // Exit early since quiz has ended
-            }
-        }
-
-        // Broadcast the answer to all players
-        sendAnswerResult(currentPlayer, answerIndex, isCorrect, currentQuestion);
-
-        new Thread(() -> {
-            try {
-                Thread.sleep(1000);
-                synchronized (currentPlayer) {
-                    answeredPlayers.remove(playerId);
-                    currentPlayer.notify();
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
     }
 
     private void sendPlayerUpdate() {
@@ -165,29 +151,29 @@ public class QuizService {
         messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
     }
 
-    private void sendQuestion(QuizPlayer player, QuizQuestion question) {
-        System.out.println("Sending question " + question + " to a player " + player);
-        QuizMessage message = new QuizMessage();
+    private void prepareQuestionMessage() {
+        System.out.println("Preparing question " + currentQuestion + " to a player " + currentPlayer);
+        message = new QuizMessage();
         message.setType(QuizMessage.MessageType.QUESTION);
-        message.setPlayer(player);
-        message.setQuestion(question);
-        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+        message.setPlayer(currentPlayer);
+        message.setQuestion(currentQuestion);
     }
 
-    private void sendAnswerResult(QuizPlayer player, int answerIndex, boolean isCorrect, QuizQuestion question) {
-        QuizMessage message = new QuizMessage();
+    private void prepareAnswerMessage() {
+        System.out.println("Preparing answer message " + currentQuestion + " correct: " + answerCorrect);
+        message = new QuizMessage();
         message.setType(QuizMessage.MessageType.ANSWER);
-        message.setPlayer(player);
+        message.setPlayer(currentPlayer);
         message.setSelectedAnswer(answerIndex);
-        message.setCorrect(isCorrect);
-        message.setQuestion(question);
+        message.setCorrect(answerCorrect);
+        message.setQuestion(currentQuestion);
         message.setPlayers(new ArrayList<>(players.values()));
         messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
     }
 
     public void endQuiz(QuizPlayer winner) {
         quizRunning = false;
-        QuizMessage message = new QuizMessage();
+        message = new QuizMessage();
         message.setType(QuizMessage.MessageType.WIN);
         message.setWinner(winner);
         message.setPlayers(new ArrayList<>(players.values()));
@@ -220,4 +206,12 @@ public class QuizService {
     }
 
 
-}
+    public void processAnswer(String playerId, Integer ai) {
+        synchronized (playerQueue) {
+            if (currentQuestion != null && currentPlayer != null && playerId.equals(currentPlayer.getId())) {
+                answerGiven = true;
+                answerIndex = ai;
+                playerQueue.notifyAll();
+            }
+        }
+    }}

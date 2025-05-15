@@ -201,19 +201,49 @@
         let currentPlayers = [];
         let currentQuestion = null;
 
-        // Initialize connection immediately if we have stored IDs
-        if (quizPlayerId && currentLobbyId) {
-            connectQuizWebSocket();
-        }
-
         let reconnectAttempts = 0;
         const MAX_RECONNECT_ATTEMPTS = 5;
-        let storedPlayerId = localStorage.getItem('quizPlayerId');
+
+
+        connectActiveQuiz();
+
 
         $('#quiz-join-btn').click(joinQuiz);
         $('#quiz-nickname').keypress(function(e) {
             if (e.which === 13) joinQuiz();
         });
+
+        function connectActiveQuiz() {
+            let ret = true;
+            $.post('/quiz/check', { quizPlayerId: quizPlayerId, currentLobbyId:currentLobbyId})
+            .done(function(response) {
+                if (response.player) {
+                    quizPlayerId = response.player.id;
+                    nickname = response.player.nickname;
+                    localStorage.setItem('quizPlayerId', quizPlayerId);
+                }
+                if (response.currentLobbyId) {
+                    currentLobbyId = response.currentLobbyId;
+                } else {
+                    currentLobbyId = null;
+                }
+                localStorage.setItem('quizLobbyId', currentLobbyId);
+                if (currentLobbyId) {
+                    $('#quiz-join').hide();
+                    $('#quiz-container').show();
+                    $('#connection-status').text('Connected as: ' + nickname);
+                    connectQuizWebSocket();
+                } else {
+                    $('#quiz-join').show();
+                    $('#quiz-container').hide();
+                    $('#connection-status').text('Not connected');
+                }
+            })
+            .fail(function(error) {
+                ret = false;
+            });
+            return ret;
+        }
 
         function joinQuiz() {
             const nickname = $('#quiz-nickname').val().trim();

@@ -48,4 +48,11 @@ public class LobbyManager {
         return ret;
     }
 
+    public Lobby find(String quizPlayerId, String currentLobbyId) {
+        if (availableLobby != null && availableLobby.hasPlayer(quizPlayerId)) return availableLobby;
+        for (Lobby lobby : activeLobbies.values()) {
+            if (lobby.hasPlayer(quizPlayerId)) return lobby;
+        }
+        return null;
+    }
 }

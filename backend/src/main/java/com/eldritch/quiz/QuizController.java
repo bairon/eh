@@ -34,6 +34,27 @@ public class QuizController {
         this.messagingTemplate = messagingTemplate;
     }
 
+    @PostMapping("/quiz/check")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkQuiz(
+            @RequestParam String quizPlayerId, @RequestParam String currentLobbyId) {
+        try {
+            // Get or create an available lobby
+            Lobby lobby = lobbyManager.find(quizPlayerId, currentLobbyId);
+            Map<String, Object> response = new HashMap<>();
+            if (lobby != null) {
+                response.put("player", lobby.getPlayer(quizPlayerId));
+                response.put("currentLobbyId", lobby.getId());
+            }
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            logger.error("Failed to check quiz for quizPlayerId: " + quizPlayerId, e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to check quiz");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
     @PostMapping("/quiz/join")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> joinQuiz(

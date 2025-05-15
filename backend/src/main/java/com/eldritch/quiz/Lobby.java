@@ -47,4 +47,12 @@ public class Lobby {
     public boolean isFull() {
         return gameInstance.isQuizRunning();
     }
+
+    public boolean hasPlayer(String quizPlayerId) {
+        return players.containsKey(quizPlayerId);
+    }
+
+    public QuizPlayer getPlayer(String quizPlayerId) {
+        return players.get(quizPlayerId);
+    }
 }

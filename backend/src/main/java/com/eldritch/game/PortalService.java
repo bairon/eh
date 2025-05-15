@@ -16,14 +16,11 @@ import java.util.Properties;
 public class PortalService {
     public static final int PORTAL_SIZE = 9; // Number of portals
 
-    @Value("${portals.file}")
-    private String portalsFile; // Base name of the properties file (e.g., "portals")
-
     private static final Logger logger = LoggerFactory.getLogger(PortalService.class);
 
     @Cacheable(value = "portals")
     public List<Portal> getPortals() {
-        String fileName = portalsFile + ".properties";
+        String fileName = "portals.properties";
         Properties properties = new Properties();
         try (InputStream input = getClass().getClassLoader().getResourceAsStream(fileName)) {
             if (input == null) {
@@ -44,9 +41,5 @@ public class PortalService {
         }
 
         return portals;
-    }
-
-    public void setPortalsFile(String portalsFile) {
-        this.portalsFile = portalsFile;
     }
 }
