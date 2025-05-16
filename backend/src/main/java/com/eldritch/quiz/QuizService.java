@@ -26,7 +26,7 @@ public class QuizService implements QuizAnswerListener {
     private boolean quizRunning = false;
     private QuizQuestion currentQuestion;
     private boolean answerGiven;
-    int answerIndex = 1;
+    private int answerIndex = 1;
     private boolean answerCorrect;
     private QuizMessage message;
     private QuizPlayer winner;
