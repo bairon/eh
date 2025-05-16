@@ -2,7 +2,6 @@ package com.eldritch.quiz;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,16 +22,16 @@ class QuizControllerTest {
     void should_return_player_and_lobby_info_when_joining_quiz() {
         // Given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        LobbyManager lobbyManager = mock(LobbyManager.class);
-        Lobby mockLobby = mock(Lobby.class);
+        QuizLobbyManager quizLobbyManager = mock(QuizLobbyManager.class);
+        QuizLobby mockQuizLobby = mock(QuizLobby.class);
         QuizPlayer mockPlayer = new QuizPlayer("player1", "testUser", 0, true);
 
-        when(lobbyManager.join(anyString())).thenReturn(mockLobby);
-        when(mockLobby.getLastJoinedPlayer()).thenReturn(mockPlayer);
-        when(mockLobby.getId()).thenReturn("lobby123");
-        when(mockLobby.getPlayers()).thenReturn(new ArrayList<>());
+        when(quizLobbyManager.join(anyString())).thenReturn(mockQuizLobby);
+        when(mockQuizLobby.getLastJoinedPlayer()).thenReturn(mockPlayer);
+        when(mockQuizLobby.getId()).thenReturn("lobby123");
+        when(mockQuizLobby.getPlayers()).thenReturn(new ArrayList<>());
 
-        QuizController controller = new QuizController(lobbyManager, messagingTemplate);
+        QuizController controller = new QuizController(quizLobbyManager, messagingTemplate);
 
         // When
         ResponseEntity<Map<String, Object>> response = controller.joinQuiz("testUser");
@@ -56,11 +55,11 @@ class QuizControllerTest {
     void should_return_bad_request_when_join_fails() {
         // Given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        LobbyManager lobbyManager = mock(LobbyManager.class);
+        QuizLobbyManager quizLobbyManager = mock(QuizLobbyManager.class);
 
-        when(lobbyManager.join(anyString())).thenThrow(new RuntimeException("Test exception"));
+        when(quizLobbyManager.join(anyString())).thenThrow(new RuntimeException("Test exception"));
 
-        QuizController controller = new QuizController(lobbyManager, messagingTemplate);
+        QuizController controller = new QuizController(quizLobbyManager, messagingTemplate);
 
         // When
         ResponseEntity<Map<String, Object>> response = controller.joinQuiz("testUser");
@@ -74,15 +73,15 @@ class QuizControllerTest {
     void should_return_lobby_state_when_requested() {
         // Given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        LobbyManager lobbyManager = mock(LobbyManager.class);
-        Lobby mockLobby = mock(Lobby.class);
+        QuizLobbyManager quizLobbyManager = mock(QuizLobbyManager.class);
+        QuizLobby mockQuizLobby = mock(QuizLobby.class);
         ArrayList<QuizPlayer> players = new ArrayList<>();
         players.add(new QuizPlayer("player1", "user1", 0, true));
 
-        when(lobbyManager.getLobby("lobby123")).thenReturn(mockLobby);
-        when(mockLobby.getPlayers()).thenReturn(players);
+        when(quizLobbyManager.getLobby("lobby123")).thenReturn(mockQuizLobby);
+        when(mockQuizLobby.getPlayers()).thenReturn(players);
 
-        QuizController controller = new QuizController(lobbyManager, messagingTemplate);
+        QuizController controller = new QuizController(quizLobbyManager, messagingTemplate);
 
         // When
         QuizMessage response = controller.sendLobbyState("lobby123");
@@ -99,11 +98,11 @@ class QuizControllerTest {
     void should_return_null_when_lobby_not_found_for_state_request() {
         // Given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        LobbyManager lobbyManager = mock(LobbyManager.class);
+        QuizLobbyManager quizLobbyManager = mock(QuizLobbyManager.class);
 
-        when(lobbyManager.getLobby("invalid")).thenReturn(null);
+        when(quizLobbyManager.getLobby("invalid")).thenReturn(null);
 
-        QuizController controller = new QuizController(lobbyManager, messagingTemplate);
+        QuizController controller = new QuizController(quizLobbyManager, messagingTemplate);
 
         // When
         QuizMessage response = controller.sendLobbyState("invalid");
@@ -116,23 +115,23 @@ class QuizControllerTest {
     void should_handle_reconnect_with_question_when_player_is_current() {
         // Given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        LobbyManager lobbyManager = mock(LobbyManager.class);
-        Lobby mockLobby = mock(Lobby.class);
+        QuizLobbyManager quizLobbyManager = mock(QuizLobbyManager.class);
+        QuizLobby mockQuizLobby = mock(QuizLobby.class);
         QuizService mockGame = mock(QuizService.class);
         QuizPlayer mockPlayer = new QuizPlayer("player1", "user1", 0, true);
         QuizQuestion mockQuestion = new QuizQuestion("Test?", List.of("A", "B"), 0);
         ArrayList<QuizPlayer> players = new ArrayList<>();
         players.add(mockPlayer);
 
-        when(lobbyManager.getLobby("lobby123")).thenReturn(mockLobby);
-        when(mockLobby.getGameInstance()).thenReturn(mockGame);
+        when(quizLobbyManager.getLobby("lobby123")).thenReturn(mockQuizLobby);
+        when(mockQuizLobby.getGameInstance()).thenReturn(mockGame);
         when(mockGame.getPlayer("player1")).thenReturn(mockPlayer);
-        when(mockLobby.getPlayers()).thenReturn(players);
+        when(mockQuizLobby.getPlayers()).thenReturn(players);
         when(mockGame.isQuizRunning()).thenReturn(true);
         when(mockGame.getCurrentPlayer()).thenReturn(mockPlayer);
         when(mockGame.getCurrentQuestion()).thenReturn(mockQuestion);
 
-        QuizController controller = new QuizController(lobbyManager, messagingTemplate);
+        QuizController controller = new QuizController(quizLobbyManager, messagingTemplate);
 
         // When
         QuizMessage response = controller.handleRejoin("lobby123", "player1");
@@ -149,8 +148,8 @@ class QuizControllerTest {
     void should_return_initial_state_message() {
         // Given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        LobbyManager lobbyManager = mock(LobbyManager.class);
-        QuizController controller = new QuizController(lobbyManager, messagingTemplate);
+        QuizLobbyManager quizLobbyManager = mock(QuizLobbyManager.class);
+        QuizController controller = new QuizController(quizLobbyManager, messagingTemplate);
 
         // When
         QuizMessage response = controller.sendInitialState();
@@ -165,19 +164,19 @@ class QuizControllerTest {
     void should_process_answer_and_send_update() {
         // Given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        LobbyManager lobbyManager = mock(LobbyManager.class);
-        Lobby mockLobby = mock(Lobby.class);
+        QuizLobbyManager quizLobbyManager = mock(QuizLobbyManager.class);
+        QuizLobby mockQuizLobby = mock(QuizLobby.class);
         QuizService mockGame = mock(QuizService.class);
 
-        when(lobbyManager.getLobby("lobby123")).thenReturn(mockLobby);
-        when(mockLobby.getGameInstance()).thenReturn(mockGame);
-        when(mockLobby.getPlayers()).thenReturn(new ArrayList<>());
+        when(quizLobbyManager.getLobby("lobby123")).thenReturn(mockQuizLobby);
+        when(mockQuizLobby.getGameInstance()).thenReturn(mockGame);
+        when(mockQuizLobby.getPlayers()).thenReturn(new ArrayList<>());
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("playerId", "player1");
         payload.put("answerIndex", 1);
 
-        QuizController controller = new QuizController(lobbyManager, messagingTemplate);
+        QuizController controller = new QuizController(quizLobbyManager, messagingTemplate);
 
         // When
         controller.processAnswer(payload, "lobby123");

@@ -25,12 +25,12 @@ import java.util.Map;
 @Controller
 public class QuizController {
     private static final Logger logger = LogManager.getLogger(QuizController.class);
-    private final LobbyManager lobbyManager;
+    private final QuizLobbyManager quizLobbyManager;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public QuizController(LobbyManager lobbyManager, SimpMessagingTemplate messagingTemplate) {
-        this.lobbyManager = lobbyManager;
+    public QuizController(QuizLobbyManager quizLobbyManager, SimpMessagingTemplate messagingTemplate) {
+        this.quizLobbyManager = quizLobbyManager;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -40,11 +40,11 @@ public class QuizController {
             @RequestParam String quizPlayerId, @RequestParam String currentLobbyId) {
         try {
             // Get or create an available lobby
-            Lobby lobby = lobbyManager.find(quizPlayerId, currentLobbyId);
+            QuizLobby quizLobby = quizLobbyManager.find(quizPlayerId, currentLobbyId);
             Map<String, Object> response = new HashMap<>();
-            if (lobby != null) {
-                response.put("player", lobby.getPlayer(quizPlayerId));
-                response.put("currentLobbyId", lobby.getId());
+            if (quizLobby != null) {
+                response.put("player", quizLobby.getPlayer(quizPlayerId));
+                response.put("currentLobbyId", quizLobby.getId());
             }
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -61,19 +61,19 @@ public class QuizController {
             @RequestParam String nickname) {
         try {
             // Get or create an available lobby
-            Lobby lobby = lobbyManager.join(nickname);
+            QuizLobby quizLobby = quizLobbyManager.join(nickname);
 
             // Prepare response with both player and lobby info
             Map<String, Object> response = new HashMap<>();
-            response.put("player", lobby.getLastJoinedPlayer());
-            response.put("lobbyId", lobby.getId());
+            response.put("player", quizLobby.getLastJoinedPlayer());
+            response.put("lobbyId", quizLobby.getId());
 
             QuizMessage message = new QuizMessage();
             message.setType(QuizMessage.MessageType.JOIN);
-            message.setPlayers(new ArrayList<>(lobby.getPlayers()));
+            message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
             message.setContent(nickname + " joined the quiz");
 
-            messagingTemplate.convertAndSend("/topic/quiz/" + lobby.getId(), message);
+            messagingTemplate.convertAndSend("/topic/quiz/" + quizLobby.getId(), message);
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -92,11 +92,11 @@ public class QuizController {
     public QuizMessage sendLobbyState(
             @DestinationVariable String lobbyId) {
 
-        Lobby lobby = lobbyManager.getLobby(lobbyId);
-        if (lobby != null) {
+        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
+        if (quizLobby != null) {
             QuizMessage message = new QuizMessage();
             message.setType(QuizMessage.MessageType.UPDATE);
-            message.setPlayers(new ArrayList<>(lobby.getPlayers()));
+            message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
             message.setContent("Lobby state update");
             return message;
         }
@@ -109,11 +109,11 @@ public class QuizController {
             @DestinationVariable String lobbyId,
             @DestinationVariable String playerId) {
 
-        Lobby lobby = lobbyManager.getLobby(lobbyId);
-        if (lobby != null && lobby.getGameInstance().getPlayer(playerId) != null) {
+        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
+        if (quizLobby != null && quizLobby.getGameInstance().getPlayer(playerId) != null) {
             QuizMessage message = new QuizMessage();
             message.setType(QuizMessage.MessageType.CONNECTED);
-            message.setPlayers(new ArrayList<>(lobby.getPlayers()));
+            message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
             message.setContent("Player reconnected");
             return message;
         }
@@ -127,20 +127,20 @@ public class QuizController {
             @DestinationVariable String lobbyId,
             @DestinationVariable String playerId) {
 
-        Lobby lobby = lobbyManager.getLobby(lobbyId);
-        if (lobby != null) {
-            QuizPlayer player = lobby.getGameInstance().getPlayer(playerId);
+        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
+        if (quizLobby != null) {
+            QuizPlayer player = quizLobby.getGameInstance().getPlayer(playerId);
             if (player != null) {
                 // Create full state message
                 QuizMessage message = new QuizMessage();
                 message.setType(QuizMessage.MessageType.REJOIN);
-                message.setPlayers(new ArrayList<>(lobby.getPlayers()));
+                message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
                 message.setContent(player.getNickname() + " rejoined");
 
                 // Include current question if game is active
-                if (lobby.getGameInstance().isQuizRunning()) {
-                    message.setQuestion(lobby.getGameInstance().getCurrentQuestion());
-                    message.setPlayer(lobby.getGameInstance().getCurrentPlayer());
+                if (quizLobby.getGameInstance().isQuizRunning()) {
+                    message.setQuestion(quizLobby.getGameInstance().getCurrentQuestion());
+                    message.setPlayer(quizLobby.getGameInstance().getCurrentPlayer());
                 }
 
                 return message;
@@ -160,8 +160,8 @@ public class QuizController {
     }
 
     private void broadcastPlayerUpdate(String lobbyId) {
-        Lobby lobby = lobbyManager.getLobby(lobbyId);
-        Collection<QuizPlayer> currentPlayers = lobby.getPlayers();
+        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
+        Collection<QuizPlayer> currentPlayers = quizLobby.getPlayers();
         System.out.println("Broadcasting players: " + currentPlayers);
 
         QuizMessage message = new QuizMessage();
@@ -178,27 +178,27 @@ public class QuizController {
         String playerId = (String) payload.get("playerId");
         Integer answerIndex = (Integer) payload.get("answerIndex");
 
-        Lobby lobby = lobbyManager.getLobby(lobbyId);
-        if (lobby != null) {
-            lobby.getGameInstance().processAnswer(playerId, answerIndex);
+        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
+        if (quizLobby != null) {
+            quizLobby.getGameInstance().onAnswerReceived(playerId, answerIndex);
             // Send update to this lobby only
-            messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId,
-                    createPlayerUpdate(lobby));
+            //messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId,
+            //        createPlayerUpdate(quizLobby));
         }
     }
-    private QuizMessage createPlayerUpdate(Lobby lobby) {
+    private QuizMessage createPlayerUpdate(QuizLobby quizLobby) {
         QuizMessage message = new QuizMessage();
         message.setType(QuizMessage.MessageType.UPDATE);
-        message.setPlayers(new ArrayList<>(lobby.getPlayers()));
+        message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
         message.setContent("Players updated");
         return message;
     }
 
     private void sendPlayersUpdate(String lobbyId) {
-        Lobby lobby = lobbyManager.getLobby(lobbyId);
+        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
         QuizMessage message = new QuizMessage();
         message.setType(QuizMessage.MessageType.UPDATE);
-        message.setPlayers(new ArrayList<>(lobby.getPlayers()));
+        message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
         messagingTemplate.convertAndSend("/topic/quiz", message);
     }
 

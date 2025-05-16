@@ -1,14 +1,11 @@
 package com.eldritch.quiz;
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.*;
 import java.util.concurrent.*;
 
-public class QuizService {
+public class QuizService implements QuizAnswerListener {
 
     // Configuration Constants
     public static final int QUIZ_WIN_SCORE = 5;
@@ -22,8 +19,10 @@ public class QuizService {
 
     //State
     private final ConcurrentMap<String, QuizPlayer> players = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, QuizAgent> agents = new ConcurrentHashMap<>();
     private final Queue<QuizPlayer> playerQueue = new ConcurrentLinkedQueue<>();
     private QuizPlayer currentPlayer;
+    private QuizAgent currentAgent;
     private boolean quizRunning = false;
     private QuizQuestion currentQuestion;
     private boolean answerGiven;
@@ -51,15 +50,11 @@ public class QuizService {
         this.lobbyId = lobbyId;
     }
 
-    @PostConstruct
-    public void init() {
-        System.out.println("QuizService initialized");
-    }
-
     public synchronized QuizPlayer addPlayer(String nickname) {
         String id = UUID.randomUUID().toString();
         QuizPlayer player = new QuizPlayer(id, nickname, 0, true); // active by default
         players.put(id, player);
+        agents.put(id, new QuizHumanAgent(id));
         playerQueue.add(player);
 
         // Start quiz if we have enough players
@@ -77,31 +72,28 @@ public class QuizService {
         return new ArrayList<>(players.values());
     }
 
-    // Modify startQuiz() method:
-
     public void startQuiz() {
         System.out.println("Starting Quiz");
         quizRunning = true;
 
         Thread quizThread = new Thread(() -> {
             while (quizRunning) {
-                quizCycle();
-                if (message != null) {
-                    messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
-                }
-                synchronized (playerQueue) {
                     try {
-                        playerQueue.wait(waitTimeout);
-                    } catch (InterruptedException e) {
+                        quizCycle();
+                        if (waitTimeout > 0) {
+                            synchronized (this) {
+                                wait(waitTimeout);
+                            }
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException(e);
                     }
-                }
             }
         });
         quizThread.start();
     }
 
-    public void quizCycle() {
+    public void quizCycle() throws ExecutionException, InterruptedException {
         if (quizRunning) {
             sendPlayerUpdate();
             waitTimeout = TEN_SECONDS;
@@ -110,31 +102,42 @@ public class QuizService {
                 winner = currentPlayer;
                 currentPlayer = null;
                 prepareWinMessage();
-                return;
-            }
-            if (currentQuestion != null && answerGiven) {
+                messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+            } else if (currentQuestion != null && answerGiven) {
                 answerCorrect = answerIndex == currentQuestion.getCorrectOption();
                 if (answerCorrect) {
                     currentPlayer.incrementScore();
                 }
                 prepareAnswerMessage();
+                messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
                 currentQuestion = null;
                 answerIndex = -1;
                 answerGiven = false;
                 waitTimeout = FIVE_SECONDS;
-                return;
-            }
-            if (currentQuestion == null) {
+            } else if (currentQuestion == null) {
                 if (currentPlayer != null) {
                     currentPlayer.setActive(false);
                 }
                 currentPlayer = playerQueue.poll();
                 playerQueue.add(currentPlayer);
+                currentAgent = agents.get(currentPlayer.getId());
                 currentQuestion = getRandomQuestion();
                 prepareQuestionMessage();
-                return;
+                messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+                CompletableFuture<Integer> waitingAnswer = currentAgent.handleQuestion(currentQuestion);
+                Integer answer = waitingAnswer.get();
+                if (answer >= 0) {
+                    answerGiven = true;
+                    answerIndex = answer;
+                    waitTimeout = 0;
+                }
             }
         }
+    }
+
+    @Override
+    public void onAnswerReceived(String playerId, int answerIndex) {
+        currentAgent.onAnswerReceived(playerId, answerIndex);
     }
 
     private void prepareWinMessage() {
@@ -204,14 +207,4 @@ public class QuizService {
     public String getLobbyId() {
         return lobbyId;
     }
-
-
-    public void processAnswer(String playerId, Integer ai) {
-        synchronized (playerQueue) {
-            if (currentQuestion != null && currentPlayer != null && playerId.equals(currentPlayer.getId())) {
-                answerGiven = true;
-                answerIndex = ai;
-                playerQueue.notifyAll();
-            }
-        }
-    }}
+}

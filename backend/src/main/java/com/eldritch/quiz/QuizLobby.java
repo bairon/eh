@@ -6,13 +6,13 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Lobby {
+public class QuizLobby {
     private final String id;
     private final ConcurrentHashMap<String, QuizPlayer> players = new ConcurrentHashMap<>();
     private final QuizService gameInstance;
     private QuizPlayer lastJoinedPlayer;
 
-    public Lobby(SimpMessagingTemplate messagingTemplate) {
+    public QuizLobby(SimpMessagingTemplate messagingTemplate) {
         this.id = UUID.randomUUID().toString();  // Generate ID in constructor
         this.gameInstance = new QuizService(messagingTemplate, this.id);
     }

@@ -8,7 +8,7 @@ import java.util.Collection;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
-public class LobbyTest {
+public class QuizLobbyTest {
 
     @Test
     public void should_return_correct_lobby_id() {
@@ -16,8 +16,8 @@ public class LobbyTest {
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
 
         // when
-        Lobby lobby = new Lobby(messagingTemplate);
-        String lobbyId = lobby.getId();
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
+        String lobbyId = quizLobby.getId();
 
         // then
         assertThat(lobbyId).isNotNull().isNotEmpty();
@@ -27,30 +27,30 @@ public class LobbyTest {
     public void should_add_player_and_return_player_instance() {
         // given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        Lobby lobby = new Lobby(messagingTemplate);
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
 
         // when
-        QuizPlayer result = lobby.addPlayer("testUser");
+        QuizPlayer result = quizLobby.addPlayer("testUser");
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.getNickname()).isEqualTo("testUser");
-        assertThat(lobby.getPlayers()).containsExactly(result);
-        assertThat(lobby.getLastJoinedPlayer()).isEqualTo(result);
+        assertThat(quizLobby.getPlayers()).containsExactly(result);
+        assertThat(quizLobby.getLastJoinedPlayer()).isEqualTo(result);
     }
 
     @Test
     public void should_remove_player_successfully() {
         // given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        Lobby lobby = new Lobby(messagingTemplate);
-        QuizPlayer player = lobby.addPlayer("testUser");
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
+        QuizPlayer player = quizLobby.addPlayer("testUser");
 
         // when
-        lobby.removePlayer(player.getId());
+        quizLobby.removePlayer(player.getId());
 
         // then
-        assertThat(lobby.getPlayers()).isEmpty();
+        assertThat(quizLobby.getPlayers()).isEmpty();
     }
 
     @Test
@@ -59,12 +59,12 @@ public class LobbyTest {
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
 
         // when
-        Lobby lobby = new Lobby(messagingTemplate);
-        QuizService result = lobby.getGameInstance();
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
+        QuizService result = quizLobby.getGameInstance();
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getLobbyId()).isEqualTo(lobby.getId());
+        assertThat(result.getLobbyId()).isEqualTo(quizLobby.getId());
     }
 
     @Test
@@ -73,8 +73,8 @@ public class LobbyTest {
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
 
         // when
-        Lobby lobby = new Lobby(messagingTemplate);
-        Collection<QuizPlayer> players = lobby.getPlayers();
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
+        Collection<QuizPlayer> players = quizLobby.getPlayers();
 
         // then
         assertThat(players).isEmpty();
@@ -86,8 +86,8 @@ public class LobbyTest {
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
 
         // when
-        Lobby lobby = new Lobby(messagingTemplate);
-        QuizPlayer result = lobby.getLastJoinedPlayer();
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
+        QuizPlayer result = quizLobby.getLastJoinedPlayer();
 
         // then
         assertThat(result).isNull();
@@ -99,8 +99,8 @@ public class LobbyTest {
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
 
         // when
-        Lobby lobby = new Lobby(messagingTemplate);
-        boolean result = lobby.isFull();
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
+        boolean result = quizLobby.isFull();
 
         // then
         assertThat(result).isFalse();
@@ -110,11 +110,11 @@ public class LobbyTest {
     public void should_return_true_for_isFull_when_quiz_is_running() {
         // given
         SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
-        Lobby lobby = new Lobby(messagingTemplate);
-        lobby.getGameInstance().startQuiz();
+        QuizLobby quizLobby = new QuizLobby(messagingTemplate);
+        quizLobby.getGameInstance().startQuiz();
 
         // when
-        boolean result = lobby.isFull();
+        boolean result = quizLobby.isFull();
 
         // then
         assertThat(result).isTrue();
