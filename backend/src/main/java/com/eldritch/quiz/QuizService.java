@@ -115,10 +115,12 @@ public class QuizService implements QuizAnswerListener {
                 answerGiven = false;
                 waitTimeout = FIVE_SECONDS;
             } else if (currentQuestion == null) {
-                if (currentPlayer != null) {
-                    currentPlayer.setActive(false);
-                }
+                // Get next player
                 currentPlayer = playerQueue.poll();
+                // Set all players inactive first
+                players.values().forEach(p -> p.setActive(false));
+                // Set new current player active
+                currentPlayer.setActive(true);
                 playerQueue.add(currentPlayer);
                 currentAgent = agents.get(currentPlayer.getId());
                 currentQuestion = getRandomQuestion();
@@ -159,6 +161,7 @@ public class QuizService implements QuizAnswerListener {
         message = new QuizMessage();
         message.setType(QuizMessage.MessageType.QUESTION);
         message.setPlayer(currentPlayer);
+        message.setPlayers(new ArrayList<>(players.values()));
         message.setQuestion(currentQuestion);
     }
 

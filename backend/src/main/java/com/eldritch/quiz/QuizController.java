@@ -159,19 +159,6 @@ public class QuizController {
         return message;
     }
 
-    private void broadcastPlayerUpdate(String lobbyId) {
-        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
-        Collection<QuizPlayer> currentPlayers = quizLobby.getPlayers();
-        System.out.println("Broadcasting players: " + currentPlayers);
-
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.UPDATE);
-        message.setPlayers(new ArrayList<>(currentPlayers));
-        message.setContent(currentPlayers.isEmpty() ? "Waiting for players" : "Players updated");
-
-        messagingTemplate.convertAndSend("/topic/quiz", message);
-    }
-
     @MessageMapping("/quiz/{lobbyId}/answer")
     public void processAnswer(@Payload Map<String, Object> payload,
                               @DestinationVariable String lobbyId) {
@@ -181,25 +168,7 @@ public class QuizController {
         QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
         if (quizLobby != null) {
             quizLobby.getGameInstance().onAnswerReceived(playerId, answerIndex);
-            // Send update to this lobby only
-            //messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId,
-            //        createPlayerUpdate(quizLobby));
         }
-    }
-    private QuizMessage createPlayerUpdate(QuizLobby quizLobby) {
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.UPDATE);
-        message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
-        message.setContent("Players updated");
-        return message;
-    }
-
-    private void sendPlayersUpdate(String lobbyId) {
-        QuizLobby quizLobby = quizLobbyManager.getLobby(lobbyId);
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.UPDATE);
-        message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
-        messagingTemplate.convertAndSend("/topic/quiz", message);
     }
 
     @EventListener

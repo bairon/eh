@@ -357,7 +357,11 @@
                         showQuizQuestion(message.player, message.question);
                     }
                     break;
+                case 'UPDATE':  // Handle both cases similarly
+                    updatePlayerList(message.players);
+                    break;
                 case 'QUESTION':
+                    updatePlayerList(message.players);
                     if (message.question && message.player) {
                         currentQuestion = message.question;
                         showQuizQuestion(message.player, message.question);
