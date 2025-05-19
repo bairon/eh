@@ -56,6 +56,8 @@ public class QuizService implements QuizAnswerListener {
         players.put(id, player);
         agents.put(id, new QuizHumanAgent(id));
         playerQueue.add(player);
+        currentPlayer = player;
+        prepareJoinMessage();
 
         // Start quiz if we have enough players
         if (players.size() >= QUIZ_PLAYERS_REQUIRED && !quizRunning) {
@@ -95,21 +97,18 @@ public class QuizService implements QuizAnswerListener {
 
     public void quizCycle() throws ExecutionException, InterruptedException {
         if (quizRunning) {
-            sendPlayerUpdate();
             waitTimeout = TEN_SECONDS;
             if (currentPlayer != null && currentPlayer.getScore() >= QUIZ_WIN_SCORE) {
                 quizRunning = false;
                 winner = currentPlayer;
                 currentPlayer = null;
                 prepareWinMessage();
-                messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
             } else if (currentQuestion != null && answerGiven) {
                 answerCorrect = answerIndex == currentQuestion.getCorrectOption();
                 if (answerCorrect) {
                     currentPlayer.incrementScore();
                 }
                 prepareAnswerMessage();
-                messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
                 currentQuestion = null;
                 answerIndex = -1;
                 answerGiven = false;
@@ -125,7 +124,11 @@ public class QuizService implements QuizAnswerListener {
                 currentAgent = agents.get(currentPlayer.getId());
                 currentQuestion = getRandomQuestion();
                 prepareQuestionMessage();
-                messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+            }
+
+            messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+
+            if (currentQuestion != null && !answerGiven) {
                 CompletableFuture<Integer> waitingAnswer = currentAgent.handleQuestion(currentQuestion);
                 Integer answer = waitingAnswer.get();
                 if (answer >= 0) {
@@ -141,19 +144,11 @@ public class QuizService implements QuizAnswerListener {
     public void onAnswerReceived(String playerId, int answerIndex) {
         currentAgent.onAnswerReceived(playerId, answerIndex);
     }
-
-    private void prepareWinMessage() {
+    private void prepareJoinMessage() {
         message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.WIN);
-        message.setWinner(winner);
-
-    }
-
-    private void sendPlayerUpdate() {
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.UPDATE);
+        message.setType(QuizMessage.MessageType.JOIN);
+        message.setPlayer(currentPlayer);
         message.setPlayers(new ArrayList<>(players.values()));
-        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
     }
 
     private void prepareQuestionMessage() {
@@ -177,15 +172,11 @@ public class QuizService implements QuizAnswerListener {
         messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
     }
 
-    public void endQuiz(QuizPlayer winner) {
-        quizRunning = false;
+    private void prepareWinMessage() {
         message = new QuizMessage();
         message.setType(QuizMessage.MessageType.WIN);
         message.setWinner(winner);
-        message.setPlayers(new ArrayList<>(players.values()));
-        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
-        players.clear();
-        playerQueue.clear();
+
     }
 
     private QuizQuestion getRandomQuestion() {
@@ -209,5 +200,9 @@ public class QuizService implements QuizAnswerListener {
     }
     public String getLobbyId() {
         return lobbyId;
+    }
+
+    public QuizMessage getMessage() {
+        return message;
     }
 }

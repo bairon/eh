@@ -68,12 +68,8 @@ public class QuizController {
             response.put("player", quizLobby.getLastJoinedPlayer());
             response.put("lobbyId", quizLobby.getId());
 
-            QuizMessage message = new QuizMessage();
-            message.setType(QuizMessage.MessageType.JOIN);
-            message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
-            message.setContent(nickname + " joined the quiz");
-
-            messagingTemplate.convertAndSend("/topic/quiz/" + quizLobby.getId(), message);
+            QuizService quizService = quizLobby.getGameInstance();
+            messagingTemplate.convertAndSend("/topic/quiz/" + quizLobby.getId(), quizService.getMessage());
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -131,19 +127,8 @@ public class QuizController {
         if (quizLobby != null) {
             QuizPlayer player = quizLobby.getGameInstance().getPlayer(playerId);
             if (player != null) {
-                // Create full state message
-                QuizMessage message = new QuizMessage();
-                message.setType(QuizMessage.MessageType.REJOIN);
-                message.setPlayers(new ArrayList<>(quizLobby.getPlayers()));
-                message.setContent(player.getNickname() + " rejoined");
-
-                // Include current question if game is active
-                if (quizLobby.getGameInstance().isQuizRunning()) {
-                    message.setQuestion(quizLobby.getGameInstance().getCurrentQuestion());
-                    message.setPlayer(quizLobby.getGameInstance().getCurrentPlayer());
-                }
-
-                return message;
+                QuizService quizService = quizLobby.getGameInstance();
+                return quizService.getMessage();
             }
         }
         return null;
