@@ -187,6 +187,11 @@
     <div id="quiz-winner"></div>
 </div>
 
+<div style="margin-top: 20px;">
+    <button id="delete-lobbies-btn" style="background-color: #f44336; color: white;">Delete All Lobbies</button>
+    <div id="delete-lobbies-status" class="status-message"></div>
+</div>
+
 <!-- Using local JS files -->
 <script src="js/jquery-3.6.0.min.js"></script>
 <script src="js/jquery-ui-1.12.1.min.js"></script>
@@ -195,6 +200,23 @@
 
 <script>
     $(document).ready(function() {
+        $('#delete-lobbies-btn').click(function() {
+        if (confirm('Are you sure you want to delete ALL lobbies? This cannot be undone!')) {
+            $('#delete-lobbies-status').text('Deleting lobbies...').css('color', 'orange');
+
+            $.post('/quiz/deleteAllLobbies')
+                .done(function(response) {
+                    if (response.success) {
+                        $('#delete-lobbies-status').text(response.message).css('color', 'green');
+                    } else {
+                        $('#delete-lobbies-status').text(response.message).css('color', 'red');
+                    }
+                })
+                .fail(function(error) {
+                    $('#delete-lobbies-status').text('Error: ' + error.responseText).css('color', 'red');
+                });
+        }
+        });
         let quizPlayerId = localStorage.getItem('quizPlayerId');
         let currentLobbyId = localStorage.getItem('quizLobbyId');
         let stompClient = null;

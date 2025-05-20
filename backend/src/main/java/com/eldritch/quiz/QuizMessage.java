@@ -1,6 +1,9 @@
 package com.eldritch.quiz;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class QuizMessage {
     private MessageType type;
@@ -15,7 +18,60 @@ public class QuizMessage {
     public enum MessageType {
         JOIN, START, QUESTION, ANSWER, WIN, ERROR, RECONNECT, CONNECTED, REJOIN, WRONG_ANSWER, CORRECT_ANSWER, UPDATE
     }
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", type != null ? type.name() : null);
+        map.put("content", content);
+        map.put("player", player != null ? player.toMap() : null);
+        map.put("question", question != null ? question.toMap() : null);
+        map.put("selectedAnswer", selectedAnswer);
+        map.put("correct", correct);
+        map.put("winner", winner != null ? winner.toMap() : null);
 
+        if (players != null) {
+            List<Map<String, Object>> playersList = new ArrayList<>();
+            for (QuizPlayer p : players) {
+                playersList.add(p.toMap());
+            }
+            map.put("players", playersList);
+        }
+
+        return map;
+    }
+
+    public static QuizMessage fromMap(Map<String, Object> map) {
+        if (map == null) return null;
+
+        QuizMessage message = new QuizMessage();
+        message.setType(map.get("type") != null ? MessageType.valueOf((String) map.get("type")) : null);
+        message.setContent((String) map.get("content"));
+
+        if (map.get("player") != null) {
+            message.setPlayer(QuizPlayer.fromMap((Map<String, Object>) map.get("player")));
+        }
+
+        if (map.get("question") != null) {
+            message.setQuestion(QuizQuestion.fromMap((Map<String, Object>) map.get("question")));
+        }
+
+        message.setSelectedAnswer(map.get("selectedAnswer") != null ? ((Number) map.get("selectedAnswer")).intValue() : null);
+        message.setCorrect((Boolean) map.get("correct"));
+
+        if (map.get("winner") != null) {
+            message.setWinner(QuizPlayer.fromMap((Map<String, Object>) map.get("winner")));
+        }
+
+        if (map.get("players") != null) {
+            List<Map<String, Object>> playersList = (List<Map<String, Object>>) map.get("players");
+            ArrayList<QuizPlayer> players = new ArrayList<>();
+            for (Map<String, Object> playerMap : playersList) {
+                players.add(QuizPlayer.fromMap(playerMap));
+            }
+            message.setPlayers(players);
+        }
+
+        return message;
+    }
     public void setPlayers(ArrayList<QuizPlayer> players) {
         this.players = players;
     }

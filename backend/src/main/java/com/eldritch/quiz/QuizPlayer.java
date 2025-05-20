@@ -1,5 +1,8 @@
 package com.eldritch.quiz;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class QuizPlayer {
     private String id;
     private String nickname;
@@ -20,6 +23,24 @@ public class QuizPlayer {
         score++;
     }
 
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", id);
+        map.put("nickname", nickname);
+        map.put("score", score);
+        map.put("active", active);
+        return map;
+    }
+
+    public static QuizPlayer fromMap(Map<String, Object> map) {
+        if (map == null) return null;
+        return new QuizPlayer(
+                (String) map.get("id"),
+                (String) map.get("nickname"),
+                ((Number) map.get("score")).intValue(),
+                (Boolean) map.get("active")
+        );
+    }
     public String getId() {
         return id;
     }

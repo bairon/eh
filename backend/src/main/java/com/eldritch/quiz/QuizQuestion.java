@@ -1,6 +1,8 @@
 package com.eldritch.quiz;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class QuizQuestion {
     private String text;
@@ -36,7 +38,22 @@ public class QuizQuestion {
     public void setCorrectOption(int correctOption) {
         this.correctOption = correctOption;
     }
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("text", text);
+        map.put("options", options);
+        map.put("correctOption", correctOption);
+        return map;
+    }
 
+    public static QuizQuestion fromMap(Map<String, Object> map) {
+        if (map == null) return null;
+        return new QuizQuestion(
+                (String) map.get("text"),
+                (List<String>) map.get("options"),
+                ((Number) map.get("correctOption")).intValue()
+        );
+    }
     @Override
     public String toString() {
         return "QuizQuestion{" +

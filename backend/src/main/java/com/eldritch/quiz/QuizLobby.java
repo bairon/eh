@@ -17,6 +17,12 @@ public class QuizLobby {
         this.gameInstance = new QuizService(messagingTemplate, this.id);
     }
 
+    public QuizLobby(SimpMessagingTemplate messagingTemplate, String id) {
+        this.id = id;  // Generate ID in constructor
+        this.gameInstance = new QuizService(messagingTemplate, this.id);
+    }
+
+
     // Remove setId() since ID is now final and set in constructor
     public String getId() {
         return id;
@@ -32,6 +38,12 @@ public class QuizLobby {
 
     public QuizPlayer addPlayer(String nickname) {
         lastJoinedPlayer = gameInstance.addPlayer(nickname);
+        players.put(lastJoinedPlayer.getId(), lastJoinedPlayer);
+        return lastJoinedPlayer;
+    }
+
+    public QuizPlayer addPlayer(QuizPlayer player) {
+        lastJoinedPlayer = player;
         players.put(lastJoinedPlayer.getId(), lastJoinedPlayer);
         return lastJoinedPlayer;
     }

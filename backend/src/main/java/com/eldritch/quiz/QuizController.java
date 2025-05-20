@@ -160,4 +160,20 @@ public class QuizController {
     public void handleWebSocketConnect(SessionConnectedEvent event) {
         System.out.println("New WebSocket connection: " + event.getUser());
     }
+    @PostMapping("/quiz/deleteAllLobbies")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteAllLobbies() {
+        try {
+            quizLobbyManager.deleteAllLobbies();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "All lobbies deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Failed to delete lobbies: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 }

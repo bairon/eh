@@ -15,7 +15,6 @@ public class PortalServiceTest {
     @BeforeMethod
     public void setUp() {
         portalService = new PortalService();
-        portalService.setPortalsFile("portals");
 
     }
 

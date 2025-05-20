@@ -205,4 +205,81 @@ public class QuizService implements QuizAnswerListener {
     public QuizMessage getMessage() {
         return message;
     }
+
+    public Map<String, Object> getCurrentState() {
+        Map<String, Object> state = new HashMap<>();
+        state.put("quizRunning", quizRunning);
+        state.put("currentPlayerId", currentPlayer != null ? currentPlayer.getId() : null);
+        state.put("currentQuestion", currentQuestion);
+        state.put("answerGiven", answerGiven);
+        state.put("answerIndex", answerIndex);
+        state.put("answerCorrect", answerCorrect);
+        state.put("winnerId", winner != null ? winner.getId() : null);
+        state.put("currentMessage", message != null ? message.toMap() : null);
+
+        // Save players
+        List<Map<String, Object>> playersState = new ArrayList<>();
+        for (QuizPlayer player : players.values()) {
+            Map<String, Object> playerState = new HashMap<>();
+            playerState.put("id", player.getId());
+            playerState.put("nickname", player.getNickname());
+            playerState.put("score", player.getScore());
+            playerState.put("active", player.isActive());
+            playersState.add(playerState);
+        }
+        state.put("players", playersState);
+
+        return state;
+    }
+
+    public void restoreState(Map<String, Object> state) {
+        this.quizRunning = (boolean) state.get("quizRunning");
+
+        // Restore players and agents
+        List<Map<String, Object>> playersState = (List<Map<String, Object>>) state.get("players");
+        players.clear();
+        agents.clear();
+        playerQueue.clear();
+
+        for (Map<String, Object> playerState : playersState) {
+            QuizPlayer player = new QuizPlayer(
+                    (String) playerState.get("id"),
+                    (String) playerState.get("nickname"),
+                    ((Number) playerState.get("score")).intValue(),
+                    (boolean) playerState.get("active")
+            );
+            players.put(player.getId(), player);
+
+            // Restore agent - important fix!
+            agents.put(player.getId(), new QuizHumanAgent(player.getId()));
+            playerQueue.add(player);
+
+            if (player.isActive()) {
+                currentPlayer = player;
+                currentAgent = agents.get(player.getId()); // Set currentAgent
+            }
+        }
+
+        // Restore other state
+        currentQuestion = QuizQuestion.fromMap((Map<String, Object>) state.get("currentQuestion"));
+        answerGiven = (boolean) state.get("answerGiven");
+        answerIndex = ((Long) state.get("answerIndex")).intValue();
+        answerCorrect = (boolean) state.get("answerCorrect");
+
+        String winnerId = (String) state.get("winnerId");
+        if (winnerId != null) {
+            winner = players.get(winnerId);
+        }
+
+        Map<String, Object> messageMap = (Map<String, Object>) state.get("currentMessage");
+        this.message = QuizMessage.fromMap(messageMap);
+
+        if (quizRunning) {
+            if (message == null) {
+                throw new RuntimeException("Quiz running without message");
+            }
+            // Restore message
+            startQuiz();
+        }
+    }
 }
