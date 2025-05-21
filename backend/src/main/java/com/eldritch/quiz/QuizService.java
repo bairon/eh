@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 public class QuizService implements QuizAnswerListener {
 
     // Configuration Constants
-    public static final int QUIZ_WIN_SCORE = 5;
+    public static final int QUIZ_WIN_SCORE = 2;
     private static final int QUIZ_PLAYERS_REQUIRED = 2;
     private static final int TEN_SECONDS = 10000;
     private static final int FIVE_SECONDS = 5000;
@@ -24,6 +24,7 @@ public class QuizService implements QuizAnswerListener {
     private QuizPlayer currentPlayer;
     private QuizAgent currentAgent;
     private boolean quizRunning = false;
+    private boolean quizFinished;
     private QuizQuestion currentQuestion;
     private boolean answerGiven;
     private int answerIndex = 1;
@@ -77,6 +78,7 @@ public class QuizService implements QuizAnswerListener {
     public void startQuiz() {
         System.out.println("Starting Quiz");
         quizRunning = true;
+        quizFinished = false;
 
         Thread quizThread = new Thread(() -> {
             while (quizRunning) {
@@ -91,8 +93,16 @@ public class QuizService implements QuizAnswerListener {
                         throw new RuntimeException(e);
                     }
             }
+            prepareTerminateMessage();
+            messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
+
         });
         quizThread.start();
+    }
+
+    private void prepareTerminateMessage() {
+        message = new QuizMessage();
+        message.setType(QuizMessage.MessageType.TERMINATE);
     }
 
     public void quizCycle() throws ExecutionException, InterruptedException {
@@ -100,6 +110,7 @@ public class QuizService implements QuizAnswerListener {
             waitTimeout = TEN_SECONDS;
             if (currentPlayer != null && currentPlayer.getScore() >= QUIZ_WIN_SCORE) {
                 quizRunning = false;
+                quizFinished = true;
                 winner = currentPlayer;
                 currentPlayer = null;
                 prepareWinMessage();
@@ -169,7 +180,6 @@ public class QuizService implements QuizAnswerListener {
         message.setCorrect(answerCorrect);
         message.setQuestion(currentQuestion);
         message.setPlayers(new ArrayList<>(players.values()));
-        messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
     }
 
     private void prepareWinMessage() {
@@ -195,6 +205,10 @@ public class QuizService implements QuizAnswerListener {
         return quizRunning;
     }
 
+    public boolean isQuizFinished() {
+        return quizFinished;
+    }
+
     public QuizPlayer getCurrentPlayer() {
         return currentPlayer;
     }
@@ -209,6 +223,7 @@ public class QuizService implements QuizAnswerListener {
     public Map<String, Object> getCurrentState() {
         Map<String, Object> state = new HashMap<>();
         state.put("quizRunning", quizRunning);
+        state.put("quizFinished", quizFinished);
         state.put("currentPlayerId", currentPlayer != null ? currentPlayer.getId() : null);
         state.put("currentQuestion", currentQuestion);
         state.put("answerGiven", answerGiven);

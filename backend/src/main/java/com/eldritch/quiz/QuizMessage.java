@@ -16,7 +16,7 @@ public class QuizMessage {
     private ArrayList<QuizPlayer> players;
 
     public enum MessageType {
-        JOIN, START, QUESTION, ANSWER, WIN, ERROR, RECONNECT, CONNECTED, REJOIN, WRONG_ANSWER, CORRECT_ANSWER, UPDATE
+        JOIN, CONNECTED, REJOIN, QUESTION, ANSWER, WIN, TERMINATE
     }
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();

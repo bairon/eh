@@ -237,7 +237,7 @@
 
         function connectActiveQuiz() {
             let ret = true;
-            $.post('/quiz/check', { quizPlayerId: quizPlayerId, currentLobbyId:currentLobbyId})
+            $.post('/quiz/check', {quizPlayerId: quizPlayerId})
             .done(function(response) {
                 if (response.player) {
                     quizPlayerId = response.player.id;
@@ -387,9 +387,21 @@
                 case 'WIN':
                     showWinner(message.winner);
                     break;
+                case 'TERMINATE':
+                    if (stompClient) {
+                        stompClient.unsubscribe(`/topic/quiz/${currentLobbyId}`);
+                        showLobbyEndedMessage();
+                    }
+                    break;
             }
         }
-
+        function showLobbyEndedMessage() {
+            $('#quiz-winner').html(`
+                <h2>🎉 Game Completed! 🎉</h2>
+                <p>This lobby is now closed</p>
+                <button onclick="location.reload()">Play Again</button>
+            `).show();
+        }
         function showQuizQuestion(player, question) {
             $('#quiz-current-player').text(`${player.nickname}'s turn:`);
             $('#quiz-question').text(question.text);

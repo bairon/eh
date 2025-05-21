@@ -37,10 +37,10 @@ public class QuizController {
     @PostMapping("/quiz/check")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> checkQuiz(
-            @RequestParam String quizPlayerId, @RequestParam String currentLobbyId) {
+            @RequestParam String quizPlayerId) {
         try {
             // Get or create an available lobby
-            QuizLobby quizLobby = quizLobbyManager.find(quizPlayerId, currentLobbyId);
+            QuizLobby quizLobby = quizLobbyManager.find(quizPlayerId);
             Map<String, Object> response = new HashMap<>();
             if (quizLobby != null) {
                 response.put("player", quizLobby.getPlayer(quizPlayerId));
@@ -55,6 +55,7 @@ public class QuizController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
+
     @PostMapping("/quiz/join")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> joinQuiz(
@@ -83,7 +84,7 @@ public class QuizController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
-    @MessageMapping("/quiz/{lobbyId}/state")
+/*    @MessageMapping("/quiz/{lobbyId}/state")
     @SendTo("/topic/quiz/{lobbyId}")
     public QuizMessage sendLobbyState(
             @DestinationVariable String lobbyId) {
@@ -98,7 +99,7 @@ public class QuizController {
         }
         return null;
     }
-
+*/
     @MessageMapping("/quiz/connect/{lobbyId}/{playerId}")
     @SendTo("/topic/quiz/{lobbyId}")
     public QuizMessage handleConnect(
@@ -134,16 +135,6 @@ public class QuizController {
         return null;
     }
 
-    @MessageMapping("/quiz/state")
-    @SendTo("/topic/quiz")
-    public QuizMessage sendInitialState() {
-        // This should be lobby-specific or removed
-        QuizMessage message = new QuizMessage();
-        message.setType(QuizMessage.MessageType.UPDATE);
-        message.setContent("Please join a specific lobby");
-        return message;
-    }
-
     @MessageMapping("/quiz/{lobbyId}/answer")
     public void processAnswer(@Payload Map<String, Object> payload,
                               @DestinationVariable String lobbyId) {
@@ -154,6 +145,7 @@ public class QuizController {
         if (quizLobby != null) {
             quizLobby.getGameInstance().onAnswerReceived(playerId, answerIndex);
         }
+
     }
 
     @EventListener

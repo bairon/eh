@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -47,9 +48,8 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
                 if (lobbyData != null) {
                     QuizLobby quizLobby = restoreLobby(lobbyData);
                     if (quizLobby == null) continue;
-                    if (quizLobby.getGameInstance() != null && !quizLobby.getGameInstance().isQuizRunning()) {
+                    if (quizLobby.getGameInstance() != null && !quizLobby.getGameInstance().isQuizRunning() && !quizLobby.getGameInstance().isQuizFinished()) {
                         availableQuizLobby = quizLobby;
-                        firestoreService.deleteLobbyState(availableQuizLobby.getId());
                     } else {
                         activeLobbies.put(document.getId(), quizLobby);
                     }
@@ -91,7 +91,7 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
             if (gameState != null) {
                 lobby.getGameInstance().restoreState(gameState);
             }
-
+            logger.info("Lobby " + lobby.getId() + " restored with players: " + lobby.getPlayers());
             return lobby;
         } catch (Exception e) {
             logger.error("", e);
@@ -125,11 +125,6 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
         availableQuizLobby = null;
     }
 
-    public void cleanupLobby(String lobbyId) {
-        activeLobbies.remove(lobbyId);
-        firestoreService.deleteLobbyState(lobbyId);
-    }
-
     public QuizLobby join(String nickname) {
         QuizLobby ret = getAvailableLobby();
         ret.addPlayer(nickname);
@@ -141,14 +136,21 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
         return ret;
     }
 
-    public QuizLobby find(String quizPlayerId, String currentLobbyId) {
+    public QuizLobby find(String quizPlayerId) {
         if (availableQuizLobby != null && availableQuizLobby.hasPlayer(quizPlayerId)) {
             return availableQuizLobby;
         }
 
-        for (QuizLobby quizLobby : activeLobbies.values()) {
-            if (quizLobby.hasPlayer(quizPlayerId)) {
-                return quizLobby;
+        Iterator<Map.Entry<String, QuizLobby>> iterator = activeLobbies.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry<String, QuizLobby> entry = iterator.next();
+            QuizLobby lobby = entry.getValue();
+
+            if (lobby.getGameInstance().isQuizFinished()) {
+                iterator.remove();
+            } else if (lobby.hasPlayer(quizPlayerId)) {
+                return lobby;
             }
         }
 
@@ -190,6 +192,8 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
             state.put("gameState", lobby.getGameInstance().getCurrentState());
 
             firestoreService.saveLobbyState(lobby.getId(), state);
+            logger.info("Lobby " + lobby.getId() + " saved with players: " + lobby.getPlayers());
+
         } catch (Exception e) {
             logger.error("Failed to save lobby state for lobby: " + lobby.getId(), e);
         }
