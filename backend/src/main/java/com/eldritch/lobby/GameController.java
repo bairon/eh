@@ -1,5 +1,7 @@
-package com.eldritch.game;
+package com.eldritch.lobby;
 
+import com.eldritch.game.GameService;
+import com.eldritch.game.Player;
 import com.eldritch.session.GameSession;
 import com.eldritch.user.UserData;
 import com.eldritch.session.GameSessionService;
@@ -9,7 +11,6 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.config.ResourceReaderRepositoryPopulatorBeanDefinitionParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
