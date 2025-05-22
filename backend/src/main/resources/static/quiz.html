@@ -243,6 +243,7 @@
                     quizPlayerId = response.player.id;
                     nickname = response.player.nickname;
                     localStorage.setItem('quizPlayerId', quizPlayerId);
+                    console.log('setting quizPlayerId to ' + quizPlayerId + ' due to /quiz/check');
                 }
                 if (response.currentLobbyId) {
                     currentLobbyId = response.currentLobbyId;
@@ -250,6 +251,8 @@
                     currentLobbyId = null;
                 }
                 localStorage.setItem('quizLobbyId', currentLobbyId);
+                console.log('setting currentLobbyId to ' + currentLobbyId + ' due to /quiz/check');
+
                 if (currentLobbyId) {
                     $('#quiz-join').hide();
                     $('#quiz-container').show();
@@ -288,6 +291,8 @@
 
                     localStorage.setItem('quizPlayerId', quizPlayerId);
                     localStorage.setItem('quizLobbyId', currentLobbyId);
+                    console.log('setting quizPlayerId to ' + quizPlayerId + ' due to /quiz/join');
+                    console.log('setting quizLobbyId to ' + currentLobbyId + ' due to /quiz/join');
 
                     $('#quiz-join').hide();
                     $('#quiz-container').show();
@@ -339,9 +344,6 @@
                     setTimeout(connectQuizWebSocket, delay);
                 } else {
                     $('#connection-status').text('Disconnected - please refresh');
-                    // Clear stored IDs if we can't reconnect
-                    localStorage.removeItem('quizPlayerId');
-                    localStorage.removeItem('quizLobbyId');
                 }
             });
         }

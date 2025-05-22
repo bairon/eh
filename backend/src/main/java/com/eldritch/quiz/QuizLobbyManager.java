@@ -103,7 +103,6 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
     public synchronized QuizLobby getAvailableLobby() {
         if (availableQuizLobby == null) {
             availableQuizLobby = new QuizLobby(this.messagingTemplate);
-            saveLobbyState(availableQuizLobby);
         }
         return availableQuizLobby;
     }
@@ -120,7 +119,6 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
     }
 
     public void lobbyStartedGame() {
-        saveLobbyState(availableQuizLobby);
         activeLobbies.put(availableQuizLobby.getId(), availableQuizLobby);
         availableQuizLobby = null;
     }
@@ -128,7 +126,6 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
     public QuizLobby join(String nickname) {
         QuizLobby ret = getAvailableLobby();
         ret.addPlayer(nickname);
-        saveLobbyState(ret);
 
         if (ret.isFull()) {
             lobbyStartedGame();
@@ -148,6 +145,7 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
             QuizLobby lobby = entry.getValue();
 
             if (lobby.getGameInstance().isQuizFinished()) {
+                firestoreService.deleteLobbyState(lobby.getId());
                 iterator.remove();
             } else if (lobby.hasPlayer(quizPlayerId)) {
                 return lobby;
@@ -164,7 +162,7 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
     public void saveAllLobbies() {
         logger.debug("Saving all lobbies");
         // Save the available lobby if it exists
-        if (availableQuizLobby != null) {
+        if (availableQuizLobby != null && !availableQuizLobby.isEmpty()) {
             saveLobbyState(availableQuizLobby);
         }
 
@@ -191,8 +189,13 @@ public class QuizLobbyManager implements ApplicationListener<ContextClosedEvent>
             // Save game state
             state.put("gameState", lobby.getGameInstance().getCurrentState());
 
-            firestoreService.saveLobbyState(lobby.getId(), state);
-            logger.info("Lobby " + lobby.getId() + " saved with players: " + lobby.getPlayers());
+            if (lobby.getGameInstance().isQuizFinished()) {
+                firestoreService.deleteLobbyState(lobby.getId());
+                logger.info("Lobby " + lobby.getId() + " removed with players: " + lobby.getPlayers());
+            } else {
+                firestoreService.saveLobbyState(lobby.getId(), state);
+                logger.info("Lobby " + lobby.getId() + " saved with players: " + lobby.getPlayers());
+            }
 
         } catch (Exception e) {
             logger.error("Failed to save lobby state for lobby: " + lobby.getId(), e);

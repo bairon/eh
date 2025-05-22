@@ -96,6 +96,7 @@ public class QuizService implements QuizAnswerListener {
             prepareTerminateMessage();
             messagingTemplate.convertAndSend("/topic/quiz/" + lobbyId, message);
 
+
         });
         quizThread.start();
     }

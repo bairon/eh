@@ -59,6 +59,9 @@ public class QuizLobby {
     public boolean isFull() {
         return gameInstance.isQuizRunning();
     }
+    public boolean isEmpty() {
+        return players.isEmpty();
+    }
 
     public boolean hasPlayer(String quizPlayerId) {
         return players.containsKey(quizPlayerId);
