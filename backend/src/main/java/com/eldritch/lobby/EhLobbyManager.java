@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -60,15 +61,40 @@ public class EhLobbyManager implements ApplicationListener<ContextClosedEvent> {
         }
     }
 
-    public EhLobby join(String lobbyId, String nickname) {
-        EhLobby ret = getAvailableLobby();
-        ret.addAgent(nickname);
-
-        if (ret.isFull()) {
-            lobbyStartedGame();
+    public EhLobby join(String lobbyId, String userId) {
+        EhLobby lobby = activeLobbies.get(lobbyId);
+        if (lobby != null) {
+            lobby.addAgent(userId);
         }
-        return ret;
+        return lobby;
     }
+
+    public EhLobby leave(String userId) {
+        EhLobby lobby = findByUserId(userId);
+        if (lobby == null) return null;
+        lobby.removeAgent(userId);
+
+        if (lobby.isEmpty()) {
+            lobby.terminate();
+            activeLobbies.remove(lobby.getId());
+            return null;
+        }
+        return lobby;
+    }
+
+    public EhLobby kick(String kickUserId, String byUserId) {
+        if (Objects.equals(kickUserId, byUserId)) return null;
+        EhLobby byLobby = findByUserId(byUserId);
+        if (byLobby == null) return null;
+        EhLobby kickLobby = findByUserId(kickUserId);
+        if (kickLobby == null) return null;
+        if (byLobby.getId().equals(kickLobby.getId())) {
+            kickLobby.removeAgent(kickUserId);
+            return kickLobby;
+        }
+        return null;
+    }
+
     public EhLobby findByUserId(String id) {
         if (availableLobby != null && availableLobby.hasAgent(id)) {
             return availableLobby;

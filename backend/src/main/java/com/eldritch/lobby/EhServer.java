@@ -3,6 +3,7 @@ package com.eldritch.lobby;
 import com.eldritch.logic.EhLogic;
 import com.eldritch.logic.EhState;
 import com.eldritch.quiz.QuizLobbyManager;
+import com.eldritch.user.UserData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -31,9 +32,8 @@ public class EhServer implements InterractionListener {
         this.lobbyId = lobbyId;
     }
 
-    public synchronized EhAgent addAgent(String nickname) {
-        String id = UUID.randomUUID().toString();
-        EhAgent agent = new HumanAgent(id, nickname); // active by default
+    public synchronized EhAgent addAgent(String userId) {
+        EhAgent agent = new HumanAgent(userId); // active by default
         agents.add(agent);
         prepareJoinMessage();
         return agent;
@@ -46,10 +46,13 @@ public class EhServer implements InterractionListener {
     public synchronized Optional<EhAgent> getAgent(String id) {
         return agents.stream().filter(agent -> agent.getId().equals(id)).findFirst();
     }
+    public synchronized void removeAgent(String userId) {
+        agents.removeIf(agent -> agent.getId().equals(userId));
+    }
+
     public List<EhAgent> getAgents() {
         return this.agents;
     }
-
     public void startServer() {
         logger.info("Starting EH Server...");
         ehLogic = new EhLogic(this, ehState, agents);
@@ -71,6 +74,7 @@ public class EhServer implements InterractionListener {
         });
         serverThread.start();
     }
+
     @Override
     public void onAnswerReceived(String playerId, String answer) {
         currentAgent.onAnswerReceived(playerId, answer);

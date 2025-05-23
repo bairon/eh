@@ -2,14 +2,6 @@ package com.eldritch.user;
 
 
 public class UserData {
-    public UserData(String id, String login, String email, String nickname, String language) {
-        this.id = id;
-        this.login = login;
-        this.email = email;
-        this.nickname = nickname;
-        this.language = language;
-    }
-
     private String id; // Change to String or UUID
 
     private String login;
@@ -19,6 +11,22 @@ public class UserData {
     private String nickname;
 
     private String language;
+
+    public UserData(String id, String login, String email, String nickname, String language) {
+        this.id = id;
+        this.login = login;
+        this.email = email;
+        this.nickname = nickname;
+        this.language = language;
+    }
+
+    public UserData(User user) {
+        this.id = user.getId();
+        this.login = user.getLogin();
+        this.email = user.getEmail();
+        this.nickname = user.getNickname();
+        this.language = user.getLanguage();
+    }
 
     public String getId() {
         return id;

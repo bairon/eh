@@ -5,10 +5,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class UserService {
+    private Map<String, UserData> userCache = new ConcurrentHashMap<>();
 
     @Autowired
     private UserRepository userRepository;
@@ -33,7 +36,9 @@ public class UserService {
         user.setNickname(nickname);
         user.setLogin(login); // Add this line
         user.setPassword(passwordEncoder.encode(password));
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        userCache.put(saved.getId(), new UserData(saved));
+        return saved;
     }
 
     public UserData getUserData(String email) {

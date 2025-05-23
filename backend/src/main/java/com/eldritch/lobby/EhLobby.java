@@ -1,6 +1,5 @@
 package com.eldritch.lobby;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Collection;
@@ -42,17 +41,13 @@ public class EhLobby {
         return lastJoined;
     }
 
-    public EhAgent addAgent(EhAgent agent) {
-        lastJoined = agent;
-        agents.put(lastJoined.getId(), lastJoined);
-        return lastJoined;
-    }
 
     public EhAgent getLastJoined() {
         return lastJoined;
     }
 
-    public void removeAgent(String id) {
+    public synchronized void removeAgent(String userId) {
+        server.removeAgent(userId);
         agents.remove(id);
     }
 
@@ -73,5 +68,9 @@ public class EhLobby {
 
     public LobbyInfo info() {
         return new LobbyInfo();
+    }
+
+    public void terminate() {
+        server.stopServer();
     }
 }
