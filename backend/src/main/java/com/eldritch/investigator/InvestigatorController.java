@@ -1,6 +1,9 @@
 package com.eldritch.investigator;
 
 import com.eldritch.game.Player;
+import com.eldritch.lobby.EhAgent;
+import com.eldritch.lobby.EhLobby;
+import com.eldritch.lobby.EhLobbyManager;
 import com.eldritch.session.GameSession;
 import com.eldritch.session.GameSessionService;
 import jakarta.servlet.http.HttpSession;
@@ -22,8 +25,9 @@ public class InvestigatorController {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate; // For WebSocket broadcasting
+
     @Autowired
-    private GameSessionService gameSessionService;
+    private EhLobbyManager lobbyManager;
 
     @GetMapping("/list")
     public List<InvestigatorTemplate> getInvestigators() {
@@ -33,25 +37,25 @@ public class InvestigatorController {
     @PostMapping("/select")
     public ResponseEntity<Object> selectInvestigator(@RequestBody Map<String, String> request, HttpSession session) {
         // Retrieve the GameSession ID from the HttpSession
-        String gameSessionId = (String) session.getAttribute("gameSessionId");
-        if (gameSessionId == null) {
+        String lobbyId = (String) session.getAttribute("lobbyId");
+        if (lobbyId == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Game session not found. Please start or join a game.");
         }
 
         // Retrieve the game state from the GameSession
         String userId = (String) session.getAttribute("userId");
-        GameSession gameSession = gameSessionService.getGameSession(gameSessionId);
-        Player player = gameSessionService.getPlayer(userId);
+        EhLobby lobby = lobbyManager.getLobby(lobbyId);
+        EhAgent agent = lobby.getAgent(userId);
 
-        if (player == null) {
+        if (agent == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("You are not in the game.");
         }
 
         String investigatorId = request.get("id");
-        player.setInvestigatorId(investigatorId);
+        agent.setInvestigatorId(investigatorId);
 
         // Broadcast the updated game state to all clients in the session
-        messagingTemplate.convertAndSend("/topic/gameSession/" + gameSessionId, gameSession);
+        messagingTemplate.convertAndSend("/topic/ehlobby/" + lobbyId, lobby.info());
 
         return ResponseEntity.ok().build();
     }

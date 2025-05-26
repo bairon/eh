@@ -3,19 +3,17 @@ package com.eldritch.lobby;
 import com.eldritch.logic.Interraction;
 import com.eldritch.user.UserData;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class HumanAgent extends EhAgent {
 
-    private UserData userData;
+    private final UserData userData;
 
     private CompletableFuture<String> pendingAnswer;
 
-
-    public HumanAgent(String id) {
-        super(id);
+    public HumanAgent(UserData  userData) {
+        super(userData.getId());
+        this.userData = userData;
     }
 
     @Override
@@ -32,24 +30,12 @@ public class HumanAgent extends EhAgent {
         }
     }
 
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", id);
-        return map;
-    }
-
-    public static HumanAgent fromMap(Map<String, Object> map) {
-        if (map == null) return null;
-        return new HumanAgent(
-                (String) map.get("id")
-        );
-    }
-
     public UserData getUserData() {
         return userData;
     }
 
-    public void setUserData(UserData userData) {
-        this.userData = userData;
+    @Override
+    public String getNickname() {
+        return userData.getNickname();
     }
 }

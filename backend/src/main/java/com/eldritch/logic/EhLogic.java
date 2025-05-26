@@ -32,7 +32,7 @@ public class EhLogic {
     }
 
     public boolean inProgress() {
-        return EhStatus.IN_PROGRESS == state.getStatus();
+        return EhStatus.ONGOING == state.getStatus();
     }
 
     public boolean isFinished() {

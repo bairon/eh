@@ -1,5 +1,8 @@
 package com.eldritch.ancientone;
 
+import com.eldritch.lobby.EhLobby;
+import com.eldritch.lobby.EhLobbyManager;
+import com.eldritch.lobby.LobbyInfo;
 import com.eldritch.session.GameSession;
 import com.eldritch.game.GameState;
 import com.eldritch.session.GameSessionService;
@@ -23,7 +26,7 @@ public class AncientOneController {
     private AncientOneService ancientOneService;
 
     @Autowired
-    private GameSessionService gameSessionService;
+    private EhLobbyManager lobbyManager;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate; // For WebSocket broadcasting
@@ -36,25 +39,24 @@ public class AncientOneController {
     @PostMapping("/select")
     public ResponseEntity<Object> selectAncientOne(@RequestBody Map<String, String> request, HttpSession session) {
         // Retrieve the GameSession ID from the HttpSession
-        String gameSessionId = (String) session.getAttribute("gameSessionId");
-        if (gameSessionId == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Game session not found. Please start or join a game.");
+        String lobbyId = (String) session.getAttribute("lobbyId");
+        if (lobbyId == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Lobby not found. Please start or join a game.");
         }
 
-        // Retrieve the game state from the GameSession
-        GameSession gameSession = gameSessionService.getGameSession(gameSessionId);
-        GameState gameState = gameSession.getGameState();
-        if (gameState == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Game state not found.");
+        EhLobby lobby = lobbyManager.getLobby(lobbyId);
+
+        if (lobby == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Lobby not found.");
         }
 
-        // Set the selected Ancient One in the game state
         String ancientId = request.get("id");
-        gameState.setAncientId(ancientId);
+        lobby.setAncientId(ancientId);
 
         // Broadcast the updated game state to all clients in the session
-        messagingTemplate.convertAndSend("/topic/gameSession/" + gameSessionId, gameSession);
+        LobbyInfo lobbyInfo = lobby.info();
+        messagingTemplate.convertAndSend("/topic/ehlobby/" + lobbyId, lobbyInfo);
 
-        return ResponseEntity.ok(gameSession);
+        return ResponseEntity.ok(lobbyInfo);
     }
 }

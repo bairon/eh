@@ -1,5 +1,6 @@
 package com.eldritch.lobby;
 
+import com.eldritch.logic.EhStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Collection;
@@ -8,17 +9,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class EhLobby {
     private final String id;
+    private final String gameName;
     private final ConcurrentHashMap<String, EhAgent> agents = new ConcurrentHashMap<>();
     private final EhServer server;
     private EhAgent lastJoined;
+    private String ancientId;
 
-    public EhLobby(SimpMessagingTemplate messagingTemplate) {
+    public EhLobby(SimpMessagingTemplate messagingTemplate, String gameName) {
         this.id = UUID.randomUUID().toString();  // Generate ID in constructor
-        this.server = new EhServer(messagingTemplate, this.id);
-    }
-
-    public EhLobby(SimpMessagingTemplate messagingTemplate, String id) {
-        this.id = id;
+        this.gameName = gameName;
         this.server = new EhServer(messagingTemplate, this.id);
     }
 
@@ -31,20 +30,12 @@ public class EhLobby {
         return server;
     }
 
-    public Collection<EhAgent> getAgents() {
-        return agents.values();
-    }
-
-    public synchronized EhAgent addAgent(String nickname) {
-        lastJoined = server.addAgent(nickname);
+    public synchronized EhAgent addAgent(EhAgent agent) {
+        lastJoined = server.addAgent(agent);
         agents.put(lastJoined.getId(), lastJoined);
         return lastJoined;
     }
 
-
-    public EhAgent getLastJoined() {
-        return lastJoined;
-    }
 
     public synchronized void removeAgent(String userId) {
         server.removeAgent(userId);
@@ -66,8 +57,23 @@ public class EhLobby {
         return agents.get(id);
     }
 
+    public String getAncientId() {
+        return ancientId;
+    }
+
+    public void setAncientId(String ancientId) {
+        this.ancientId = ancientId;
+    }
+
     public LobbyInfo info() {
-        return new LobbyInfo();
+        EhStatus status = EhStatus.LOBBY;
+        if (server.isStarted()) {
+            status = server.getState().getStatus();
+        }
+        return new LobbyInfo(id,
+                agents.values().stream().map(agent -> new AgentInfo(agent.getId(), agent.getNickname())).toList(),
+                ancientId,
+                gameName, status);
     }
 
     public void terminate() {

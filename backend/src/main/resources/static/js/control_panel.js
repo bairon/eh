@@ -4,14 +4,14 @@ function showCreateGamePopup() {
 
 function showJoinGamePopup() {
     showPopup('#join-game-popup');
-    fetchAvailableGames();
+    fetchAvailableLobbies();
 
     // Handle Join button click
     $('#join-game-join').off('click').on('click', function () {
-        const selectedGame = $('#game-list .game-item.selected');
-        if (selectedGame.length > 0) {
-            const sessionId = selectedGame.data('session-id');
-            joinGame(sessionId);
+        const selectedLobby = $('#game-list .game-item.selected');
+        if (selectedLobby.length > 0) {
+            const lobbyId = selectedLobby.data('lobby-id');
+            joinLobby(lobbyId);
         } else {
             alert('Please select a game to join.');
         }
@@ -23,62 +23,70 @@ function showJoinGamePopup() {
     });
 }
 
-function updateLobbyPanel(gameSession) {
+function updateLobbyPanel(lobbyInfo) {
     const $lobbyPanel = $('#lobby-panel');
-    if (gameSession === undefined || gameSession.gameStatus !== 'LOBBY') {
+    if (lobbyInfo === undefined) {
         $lobbyPanel.hide();
+        return;
+    }
+
+    $lobbyPanel.show();
+    const $gameNameElement = $('#lobby-game-name');
+    const $selectedAncientOne = $('#selected-ancient-one');
+    const $playerList = $('#player-list');
+
+    // Update the game name
+    $gameNameElement.text(lobbyInfo.gameName);
+
+    // Update the selected Ancient One
+    if (lobbyInfo.ancientId) {
+        $selectedAncientOne.text(staticData[lobbyInfo.ancientId + '.name']);
     } else {
-        $lobbyPanel.show();
-        const $gameNameElement = $('#lobby-game-name');
-        const $selectedAncientOne = $('#selected-ancient-one');
-        const $playerList = $('#player-list');
+        $selectedAncientOne.text('N/A');
+    }
 
-        // Update the game name
-        $gameNameElement.text(gameSession.gameName);
+    // Update the list of agents (previously players)
+    $playerList.empty(); // Clear the list
 
-        // Update the selected Ancient One
-        if (gameSession.gameState.ancientId) {
-            $selectedAncientOne.text(staticData[gameSession.gameState.ancientId + '.name']);
-        } else {
-            $selectedAncientOne.text('N/A');
+    // Add all agents to the list
+    lobbyInfo.agents.forEach(agent => {
+        const investigatorName = agent.investigatorId ? staticData[agent.investigatorId + '.name'] : 'N/A';
+        const $li = $('<li>').addClass('player-item');
+
+        // Agent info container
+        const displayName = agent.nickname;
+        const $agentInfo = $('<div>').addClass('player-info').text(`${displayName} (${investigatorName})`);
+        $li.append($agentInfo);
+
+        // Add kick button if current user is master and it's not themselves
+        if (lobbyInfo.agent && lobbyInfo.agent.id === agent.id) {
+            $li.addClass('current-user');
         }
 
-        // Update the list of players
-        $playerList.empty(); // Clear the list
-        gameSession.players.forEach(player => {
-            const investigatorName = player.investigatorId ? staticData[player.investigatorId + '.name'] : 'N/A';
-            const $li = $('<li>').addClass('player-item');
+        // Assuming the first agent is the master (or you might need to adjust this logic)
+        if (lobbyInfo.agents[0].id === lobbyInfo.agent?.id && agent.id !== lobbyInfo.agent?.id) {
+            const $kickBtn = $('<button>')
+                .addClass('kick-btn')
+                .text('Kick')
+                .click(() => kickPlayer(agent.id));
+            $li.append($kickBtn);
+        }
 
-            // Player info container
-            const $playerInfo = $('<div>').addClass('player-info').text(`${player.name} (${investigatorName})`);
-            $li.append($playerInfo);
-
-            // Add kick button if current user is master and it's not themselves
-            if (gameSession.player && gameSession.player.master && player.id !== gameSession.player.id) {
-                const $kickBtn = $('<button>')
-                    .addClass('kick-btn')
-                    .text('Kick')
-                    .click(() => kickPlayer(player.id));
-                $li.append($kickBtn);
-            }
-
-            $playerList.append($li);
-        });
-    }
+        $playerList.append($li);
+    });
 }
-
 async function kickPlayer(playerId) {
     if (!confirm('Are you sure you want to kick this player?')) {
         return;
     }
 
     try {
-        const response = await fetch(`/api/game/kick`, {
+        const response = await fetch(`/api/lobby/kick`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            data: JSON.stringify({playerId: playerId}),
+            body: JSON.stringify({kickUserId: playerId}),
         });
 
         if (!response.ok) {
@@ -86,7 +94,7 @@ async function kickPlayer(playerId) {
         }
 
         // Refresh the lobby panel after successful kick
-        fetchGameSession();
+        checkGame();
     } catch (error) {
         console.error('Error kicking player:', error);
         alert('Failed to kick player');
@@ -95,11 +103,11 @@ async function kickPlayer(playerId) {
 
 function updateControlPanel() {
     const isAuth = isAuthenticated();
-    const inGame = !!gameSession;
-    const ongoing = gameSession && gameSession.gameStatus === 'ONGOING';
-    const isMaster = inGame && gameSession.player && gameSession.player.master;
-    const isAllInvestigatorsChosen = gameSession && gameSession.players.every(player =>
-        player.investigatorId && player.investigatorId.trim() !== ''
+    const inGame = !!lobbyInfo;
+    const ongoing = lobbyInfo && lobbyInfo.status === 'ONGOING';
+    const isMaster = inGame && lobbyInfo.agent && lobbyInfo.agent.master;
+    const isAllInvestigatorsChosen = lobbyInfo && lobbyInfo.agents.every(agent =>
+        agent.investigatorId && agent.investigatorId.trim() !== ''
     );
     const enabling = {
         '#create-game-btn': !inGame && isAuth,

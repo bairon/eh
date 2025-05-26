@@ -1,5 +1,6 @@
 package com.eldritch.lobby;
 
+import com.eldritch.user.UserData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,51 +21,41 @@ public class EhLobbyManager implements ApplicationListener<ContextClosedEvent> {
     private static final Logger logger = LogManager.getLogger(EhLobbyManager.class);
 
     private final ConcurrentHashMap<String, EhLobby> activeLobbies = new ConcurrentHashMap<>();
-    private EhLobby availableLobby;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public EhLobbyManager(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
-        getAvailableLobby();
-    }
-
-    public synchronized EhLobby getAvailableLobby() {
-        if (availableLobby == null) {
-            availableLobby = new EhLobby(this.messagingTemplate);
-        }
-        return availableLobby;
     }
 
     public EhLobby getLobby(String lobbyId) {
-        if (availableLobby != null && lobbyId.equals(availableLobby.getId())) {
-            return availableLobby;
-        }
         return activeLobbies.get(lobbyId);
-    }
-
-    public synchronized void lobbyStartedGame() {
-        activeLobbies.put(availableLobby.getId(), availableLobby);
-        availableLobby = null;
     }
 
     public List<LobbyInfo> list() {
         return activeLobbies.values().stream().filter(lobby -> !lobby.getServer().isStarted()).map(EhLobby::info).toList();
     }
 
-    public EhLobby create(String gameName, String userId) {
-        EhLobby existingLobby = findByUserId(userId);
+    public EhLobby create(String gameName, UserData userData) {
+        EhLobby existingLobby = findByUserId(userData.getId());
         if (existingLobby != null) {
             return existingLobby;
         } else {
-            return new EhLobby(this.messagingTemplate);
+            EhLobby lobby = new EhLobby(this.messagingTemplate, gameName);
+            activeLobbies.put(lobby.getId(), lobby);
+            HumanAgent agent = new HumanAgent(userData);
+            agent.setMaster(true);
+            lobby.addAgent(agent);
+            return lobby;
         }
+
     }
 
-    public EhLobby join(String lobbyId, String userId) {
+    public EhLobby join(String lobbyId, UserData userData) {
         EhLobby lobby = activeLobbies.get(lobbyId);
+
         if (lobby != null) {
-            lobby.addAgent(userId);
+            lobby.addAgent(new HumanAgent(userData));
         }
         return lobby;
     }
@@ -96,9 +87,6 @@ public class EhLobbyManager implements ApplicationListener<ContextClosedEvent> {
     }
 
     public EhLobby findByUserId(String id) {
-        if (availableLobby != null && availableLobby.hasAgent(id)) {
-            return availableLobby;
-        }
 
         Iterator<Map.Entry<String, EhLobby>> iterator = activeLobbies.entrySet().iterator();
 

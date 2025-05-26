@@ -8,11 +8,11 @@ let chatSubscription = null;
 
 
 // Function to initialize chat
-function initializeChat(sessionId) {
+function initializeChat(lobbyId) {
     if (stompClient && stompClient.connected) {
         // Subscribe to the chat topic
         if (!chatSubscription) {
-            chatSubscription = stompClient.subscribe(`/topic/chat/${sessionId}`, function (message) {
+            chatSubscription = stompClient.subscribe(`/topic/chat/${lobbyId}`, function (message) {
                 //console.log('Received chat:' + message);
                 const chatMessage = JSON.parse(message.body);
                 appendMessageToChat(chatMessage);
@@ -43,17 +43,17 @@ function sendChatMessage() {
             nickname: userData.nickname || 'Player', // ToDo should be removed
             text: messageText,
         };
-        stompClient.send(`/app/chat/${gameSession.sessionId}`, {}, JSON.stringify(message));
+        stompClient.send(`/app/chat/${lobbyInfo.id}`, {}, JSON.stringify(message));
         $('#chat-input').val(''); // Clear the input field
     }
 }
 
 // Handle Enter key and Send button click
 // Update chat visibility based on game session
-function updateChatVisibility(gameSession) {
-    if (gameSession) {
+function updateChatVisibility(lobbyInfo) {
+    if (lobbyInfo) {
         $('#chat-container').addClass('active');
-        initializeChat(gameSession.sessionId); // Initialize chat for the session
+        initializeChat(lobbyInfo.id); // Initialize chat for the session
     } else {
         $('#chat-container').removeClass('active');
         if (chatSubscription) {

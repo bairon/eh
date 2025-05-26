@@ -105,7 +105,7 @@ async function checkUser() {
         updateUserAvatar();
         updateStaticUI();
         if (userData) {
-            await checkGame(); // Check if the user is already in a game session
+            await checkLobby(); // Check if the user is already in a game session
         }
     } catch (error) {
         console.log('CheckUser:', error);
@@ -144,7 +144,7 @@ async function handleRegister() {
         } else {
             userData = registerResponse;
             updateUserAvatar();
-            await checkGame(); // Check if the user is already in a game session
+            await checkLobby(); // Check if the user is already in a game session
 
          }
     } catch (error) {
@@ -175,7 +175,7 @@ async function handleLogin() {
         } else {
             userData = loginResponse;
             updateUserAvatar();
-            await checkGame(); // Check if the user is already in a game session
+            await checkLobby(); // Check if the user is already in a game session
         }
     } catch (error) {
         console.error('Error:', error);

@@ -32,10 +32,8 @@ public class EhServer implements InterractionListener {
         this.lobbyId = lobbyId;
     }
 
-    public synchronized EhAgent addAgent(String userId) {
-        EhAgent agent = new HumanAgent(userId); // active by default
+    public synchronized EhAgent addAgent(EhAgent agent) {
         agents.add(agent);
-        prepareJoinMessage();
         return agent;
     }
 
@@ -103,5 +101,9 @@ public class EhServer implements InterractionListener {
 
     public boolean isStarted() {
         return ehLogic != null;
+    }
+
+    public EhState getState() {
+        return ehState;
     }
 }

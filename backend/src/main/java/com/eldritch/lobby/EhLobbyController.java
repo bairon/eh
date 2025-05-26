@@ -51,19 +51,27 @@ public class EhLobbyController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create")
     public ResponseEntity<LobbyInfo> create(@RequestBody Map<String, String> request, HttpSession session) {
         logger.info("/create:" + session.getId());
         String gameName = request.get("gameName");
         String userId = (String) session.getAttribute("userId");
 
-        EhLobby newOrExistingLobby = lobbyManager.create(gameName, userId);
+        if (gameName == null || userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
+        UserData userData = userService.getUserDataById(userId);
+        if (userData == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        EhLobby newOrExistingLobby = lobbyManager.create(gameName, userData);
         session.setAttribute("lobbyId", newOrExistingLobby.getId());
+
 
         return ResponseEntity.ok(newOrExistingLobby.info());
     }
-
     @PostMapping("/join")
     public ResponseEntity<LobbyInfo> join(@RequestBody Map<String, String> request, HttpSession session) {
         String lobbyId = request.get("lobbyId");
@@ -73,7 +81,7 @@ public class EhLobbyController {
             if (userData == null) {
                 return ResponseEntity.badRequest().build();
             }
-            LobbyInfo lobbyInfo = lobbyManager.join(lobbyId, userData.getId())
+            LobbyInfo lobbyInfo = lobbyManager.join(lobbyId, userData)
                     .info();
             messagingTemplate.convertAndSend("/topic/ehlobby/" + lobbyInfo, lobbyInfo);
             return ResponseEntity.ok(lobbyInfo);

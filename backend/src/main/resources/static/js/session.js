@@ -1,84 +1,79 @@
-let gameSession = undefined;
 let stompClient = null; // Store the stompClient globally
+let lobbyInfo = undefined;
 
-
-function updateGame(session) {
-    if (!session) {
-        gameSession = undefined;
+function updateLobby(lobby) {
+    if (!lobby) {
+        lobbyInfo = undefined;
     } else {
-        gameSession = session;
-        gameSession.player = gameSession.players.find(p => p.playerId === userData.id);
+        lobbyInfo = lobby;
+        lobbyInfo.agent = lobbyInfo.agents.find(ag =>ag.id === userData.id);
         if (!stompClient || !stompClient.connected) {
-            connectToWebSocket(gameSession.sessionId);
+            connectToLobbyWebSocket(lobbyInfo.id);
         }
     }
-
-
-    updateChatVisibility(gameSession);
-    updateControlPanel(gameSession);
-    updateLobbyPanel(gameSession);
-    drawGame(gameSession);
+    updateChatVisibility(lobbyInfo);
+    updateControlPanel(lobbyInfo);
+    updateLobbyPanel(lobbyInfo);
+    drawGame(lobbyInfo);
 }
 
-async function checkGame() {
+
+async function checkLobby() { // Renamed from checkGame
     try {
         const response = await $.ajax({
-            url: '/api/game/check',
-            method: 'GET',
+            url: '/api/lobby/check',
+            method: 'POST'
         });
-        updateGame(response);
+        updateLobby(response);
     } catch (error) {
-        console.log("No active game found.");
-        updateGame();
+        console.log("No active lobby found.");
+        updateLobby();
     }
 }
 
-// Handle Join Game Selection
-async function joinGame(sessionId) {
-    if (userData) {
-        try {
-            const response = await $.ajax({
-                url: '/api/game/join',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({sessionId: sessionId}),
-            });
-            updateGame(response);
-        } catch (error) {
-            alert(error.responseText);
-        }
+
+async function joinLobby(lobbyId) { // Renamed from joinGame
+    try {
+        const response = await $.ajax({
+            url: '/api/lobby/join',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({lobbyId: lobbyId}),
+        });
+        updateLobby(response);
+    } catch (error) {
+        alert(error.responseText);
     }
     hideAllPopups();
 }
 
-async function fetchAvailableGames() {
+async function fetchAvailableLobbies() { // Renamed from fetchAvailableGames
     try {
-        const games = await $.ajax({
-            url: '/api/game/list',
+        const lobbies = await $.ajax({
+            url: '/api/lobby/list',
             method: 'GET',
         });
         const $gameList = $('#game-list');
-        $gameList.empty(); // Clear the list
-        games.forEach(game => {
-            const $gameItem = $('<div>')
+        $gameList.empty();
+        lobbies.forEach(lobby => {
+            const $lobbyItem = $('<div>')
                 .addClass('game-item')
-                .text(game.gameName)
-                .data('session-id', game.sessionId) // Store session ID for joining
-                .on('click', function () {
-                    // Highlight the selected game
+                .text(lobby.gameName || `Lobby ${lobby.id}`)
+                .data('lobby-id', lobby.id)
+                .on('click', function() {
                     $('.game-item').removeClass('selected');
                     $(this).addClass('selected');
                 });
-            $gameList.append($gameItem);
+            $gameList.append($lobbyItem);
         });
     } catch (error) {
         console.error(error);
-        alert('Error fetching games.');
+        alert('Error fetching lobbies.');
     }
 }
-async function createGameSession() {
-    const gameName = $('#game-name').val().trim();
 
+async function createLobby() {
+    const gameName = $('#game-name').val().trim();
     if (!gameName) {
         alert('Please enter a game name.');
         return;
@@ -86,35 +81,34 @@ async function createGameSession() {
 
     try {
         const response = await $.ajax({
-            url: '/api/game/create',
+            url: '/api/lobby/create',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ gameName: gameName}),
+            data: JSON.stringify({gameName: gameName}),
         });
-        updateGame(response);
+        updateLobby(response);
     } catch (error) {
-        console.error('Failed to create game session:', error);
-        alert('Failed to create game session. Please try again.');
+        console.error('Failed to create lobby:', error);
+        alert('Failed to create lobby. Please try again.');
     } finally {
         hideAllPopups();
     }
 }
-async function leaveGame() {
-    if (confirm('Are you sure to Leave Game?')) {
+
+async function leaveLobby() { // Renamed from leaveGame
+    if (confirm('Are you sure to Leave Lobby?')) {
         try {
             await $.ajax({
-                url: '/api/game/leave',
+                url: '/api/lobby/leave',
                 method: 'POST',
             });
 
-            // Disconnect from WebSocket if connected
             if (stompClient && stompClient.connected) {
-                stompClient.disconnect(); // Disconnect from WebSocket
+                stompClient.disconnect();
                 console.log('Disconnected from WebSocket');
             }
 
-            // Update the game state
-            updateGame();
+            updateLobby();
         } catch (error) {
             alert(error.responseText);
         }
@@ -124,27 +118,28 @@ async function leaveGame() {
 
 async function startGame() {
     await $.ajax({
-        url: '/api/game/start',
+        url: '/api/lobby/start',
         method: 'POST',
     });
 }
 
-// Function to connect to the WebSocket server
-function connectToWebSocket(sessionId) {
-    const socket = new SockJS('/eldritch-websocket');
-    stompClient = Stomp.over(socket); // Store stompClient globally
+function connectToLobbyWebSocket(lobbyId) { // Renamed from connectToWebSocket
+    const socket = new SockJS('/eh-ws');
+    stompClient = Stomp.over(socket);
 
-    stompClient.connect({}, function (frame) {
+    stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame);
 
-        // Subscribe to the game state updates for this session
-        stompClient.subscribe(`/topic/gameSession/${sessionId}`, function (message) {
-            const gameSession = JSON.parse(message.body);
-            updateGame(gameSession);
+        stompClient.subscribe(`/topic/ehlobby/${lobbyId}`, function(message) {
+            const lobby = JSON.parse(message.body);
+            updateLobby(lobby);
+        });
+        stompClient.subscribe(`/topic/ehgame/${lobbyId}`, function(message) {
+            const state = JSON.parse(message.body);
+            updateGame(state);
         });
 
-        // Initialize chat after WebSocket connection is established
-        initializeChat(sessionId);
+        initializeChat(lobbyId);
     });
 }
 
