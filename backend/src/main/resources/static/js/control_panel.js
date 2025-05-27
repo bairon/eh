@@ -25,7 +25,7 @@ function showJoinGamePopup() {
 
 function updateLobbyPanel(lobbyInfo) {
     const $lobbyPanel = $('#lobby-panel');
-    if (lobbyInfo === undefined) {
+    if (!lobbyInfo) {
         $lobbyPanel.hide();
         return;
     }
@@ -94,7 +94,7 @@ async function kickPlayer(playerId) {
         }
 
         // Refresh the lobby panel after successful kick
-        checkGame();
+        checkLobby();
     } catch (error) {
         console.error('Error kicking player:', error);
         alert('Failed to kick player');
@@ -103,7 +103,7 @@ async function kickPlayer(playerId) {
 
 function updateControlPanel() {
     const isAuth = isAuthenticated();
-    const inGame = !!lobbyInfo;
+    let inGame = !!lobbyInfo && lobbyInfo.agents.some(agent => agent.id === userData.id);
     const ongoing = lobbyInfo && lobbyInfo.status === 'ONGOING';
     const isMaster = inGame && lobbyInfo.agent && lobbyInfo.agent.master;
     const isAllInvestigatorsChosen = lobbyInfo && lobbyInfo.agents.every(agent =>

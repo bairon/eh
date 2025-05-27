@@ -3,14 +3,14 @@ package com.eldritch.lobby;
 import com.eldritch.logic.EhStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
-import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class EhLobby {
     private final String id;
     private final String gameName;
-    private final ConcurrentHashMap<String, EhAgent> agents = new ConcurrentHashMap<>();
+    private final Map<String, EhAgent> agents = new LinkedHashMap<>();
     private final EhServer server;
     private EhAgent lastJoined;
     private String ancientId;
@@ -39,7 +39,7 @@ public class EhLobby {
 
     public synchronized void removeAgent(String userId) {
         server.removeAgent(userId);
-        agents.remove(id);
+        agents.remove(userId);
     }
 
     public boolean isFull() {
@@ -71,12 +71,16 @@ public class EhLobby {
             status = server.getState().getStatus();
         }
         return new LobbyInfo(id,
-                agents.values().stream().map(agent -> new AgentInfo(agent.getId(), agent.getNickname())).toList(),
+                agents.values().stream().map(agent -> new AgentInfo(agent.getId(), agent.getNickname(), agent.getInvestigatorId(), agent.isMaster())).toList(),
                 ancientId,
                 gameName, status);
     }
 
     public void terminate() {
         server.stopServer();
+    }
+
+    public void start() {
+        server.startServer();
     }
 }

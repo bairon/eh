@@ -1,24 +1,72 @@
 let stompClient = null; // Store the stompClient globally
-let lobbyInfo = undefined;
+let lobbyInfo = null;
+let lobbySubscription = null;
+let gameSubscription = null;
 
 function updateLobby(lobby) {
     if (!lobby) {
+        // Cleanup when no lobby data
+        unsubscribeFromLobby();
         lobbyInfo = undefined;
     } else {
+        const previousLobbyId = lobbyInfo?.id;
         lobbyInfo = lobby;
-        lobbyInfo.agent = lobbyInfo.agents.find(ag =>ag.id === userData.id);
-        if (!stompClient || !stompClient.connected) {
+        lobbyInfo.agent = lobbyInfo.agents.find(ag => ag.id === userData.id);
+
+        // If user is no longer in this lobby, unsubscribe
+        if (!lobbyInfo.agent) {
+            unsubscribeFromLobby();
+            alert("Kicked");
+        }
+
+        // Connect if not connected
+        if ((!stompClient || !stompClient.connected) && lobbyInfo.agent) {
             connectToLobbyWebSocket(lobbyInfo.id);
         }
     }
+
     updateChatVisibility(lobbyInfo);
     updateControlPanel(lobbyInfo);
     updateLobbyPanel(lobbyInfo);
     drawGame(lobbyInfo);
 }
 
+function connectToLobbyWebSocket(lobbyId) {
+    const socket = new SockJS('/eh-ws');
+    stompClient = Stomp.over(socket);
 
-async function checkLobby() { // Renamed from checkGame
+    stompClient.connect({}, function(frame) {
+        console.log('Connected: ' + frame);
+
+        // Store subscriptions to allow unsubscribing later
+        lobbySubscription = stompClient.subscribe(`/topic/ehlobby/${lobbyId}`, function(message) {
+            const lobby = JSON.parse(message.body);
+            updateLobby(lobby);
+        });
+
+        gameSubscription = stompClient.subscribe(`/topic/ehgame/${lobbyId}`, function(message) {
+            const state = JSON.parse(message.body);
+            updateGame(state);
+        });
+
+        initializeChat(lobbyId);
+    });
+}
+
+function unsubscribeFromLobby() {
+    if (lobbySubscription) {
+        lobbySubscription.unsubscribe();
+        lobbySubscription = null;
+    }
+    if (gameSubscription) {
+        gameSubscription.unsubscribe();
+        gameSubscription = null;
+    }
+
+}
+
+
+async function checkLobby() {
     try {
         const response = await $.ajax({
             url: '/api/lobby/check',
@@ -130,17 +178,20 @@ function connectToLobbyWebSocket(lobbyId) { // Renamed from connectToWebSocket
     stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame);
 
-        stompClient.subscribe(`/topic/ehlobby/${lobbyId}`, function(message) {
+        lobbySubsctiption = stompClient.subscribe(`/topic/ehlobby/${lobbyId}`, function(message) {
             const lobby = JSON.parse(message.body);
             updateLobby(lobby);
         });
-        stompClient.subscribe(`/topic/ehgame/${lobbyId}`, function(message) {
+        gameSubscription = stompClient.subscribe(`/topic/ehgame/${lobbyId}`, function(message) {
             const state = JSON.parse(message.body);
             updateGame(state);
         });
 
         initializeChat(lobbyId);
     });
+}
+function unsubscribeFromLobby(lobbyId) {
+
 }
 
 

@@ -1,5 +1,6 @@
 package com.eldritch.lobby;
 
+import com.eldritch.session.GameSession;
 import com.eldritch.user.UserData;
 import com.eldritch.user.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -83,7 +84,8 @@ public class EhLobbyController {
             }
             LobbyInfo lobbyInfo = lobbyManager.join(lobbyId, userData)
                     .info();
-            messagingTemplate.convertAndSend("/topic/ehlobby/" + lobbyInfo, lobbyInfo);
+            session.setAttribute("lobbyId", lobbyId);
+            messagingTemplate.convertAndSend("/topic/ehlobby/" + lobbyInfo.getId(), lobbyInfo);
             return ResponseEntity.ok(lobbyInfo);
         } catch (RuntimeException e) {
             logger.error("Failed to join with user id: " + session.getAttribute("userId"), e);
@@ -122,6 +124,21 @@ public class EhLobbyController {
             logger.error("Failed to kick with user id: " + kickUserId + " with user " + session.getAttribute("userId"), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+    }
+
+    @PostMapping("/start")
+    public ResponseEntity<Object> start(HttpSession session) {
+        String userId = session.getAttribute("userId").toString();
+        EhLobby lobby = lobbyManager.findByUserId(userId);
+        EhAgent agent = lobby.getAgent(userId);
+        if (!agent.isMaster()) {
+            return ResponseEntity.badRequest().body("You are not allowed to start the game");
+        }
+        lobby.start();
+        LobbyInfo lobbyInfo = lobby.info();
+        messagingTemplate.convertAndSend("/topic/ehlobby/" + lobby.getId(), lobbyInfo);
+        return ResponseEntity.ok().body(lobbyInfo);
+
     }
 
 }
