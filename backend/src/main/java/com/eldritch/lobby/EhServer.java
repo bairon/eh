@@ -2,8 +2,8 @@ package com.eldritch.lobby;
 
 import com.eldritch.logic.EhLogic;
 import com.eldritch.logic.EhState;
+import com.eldritch.logic.EhStatus;
 import com.eldritch.quiz.QuizLobbyManager;
-import com.eldritch.user.UserData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -22,7 +22,6 @@ public class EhServer implements InterractionListener {
     //State
     private final String lobbyId;
     private EhLogic ehLogic;
-    private EhState ehState;
     private final List<EhAgent> agents = new ArrayList<>();
     private EhAgent currentAgent;
     private int waitTimeout;
@@ -30,6 +29,7 @@ public class EhServer implements InterractionListener {
     public EhServer(SimpMessagingTemplate messagingTemplate, String lobbyId) {
         this.messagingTemplate = messagingTemplate;
         this.lobbyId = lobbyId;
+        this.ehLogic = new EhLogic(this, new EhState(), agents);
     }
 
     public synchronized EhAgent addAgent(EhAgent agent) {
@@ -37,28 +37,22 @@ public class EhServer implements InterractionListener {
         return agent;
     }
 
-    private void prepareJoinMessage() {
-
-    }
-
     public synchronized Optional<EhAgent> getAgent(String id) {
         return agents.stream().filter(agent -> agent.getId().equals(id)).findFirst();
     }
     public synchronized void removeAgent(String userId) {
         agents.removeIf(agent -> agent.getId().equals(userId));
+        agents.getFirst().setMaster(true);
+
     }
 
-    public List<EhAgent> getAgents() {
-        return this.agents;
-    }
     public void startServer() {
         logger.info("Starting EH Server...");
-        ehLogic = new EhLogic(this, ehState, agents);
         ehLogic.init();
         this.serverThread = new Thread(() -> {
             while (ehLogic.inProgress()) {
                 try {
-                    waitTimeout = ehLogic.runCycle(ehState);
+                    waitTimeout = ehLogic.runCycle(ehLogic.getState());
                     if (waitTimeout > 0) {
                         synchronized (this) {
                             wait(waitTimeout);
@@ -68,7 +62,7 @@ public class EhServer implements InterractionListener {
                     throw new RuntimeException(e);
                 }
             }
-            messagingTemplate.convertAndSend("/topic/eh/" + lobbyId, ehState);
+            messagingTemplate.convertAndSend("/topic/ehgame/" + lobbyId, ehLogic.getState());
         });
         serverThread.start();
     }
@@ -103,7 +97,7 @@ public class EhServer implements InterractionListener {
         return ehLogic != null;
     }
 
-    public EhState getState() {
-        return ehState;
+    public EhStatus getStatus() {
+        return ehLogic.getState().getStatus();
     }
 }

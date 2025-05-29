@@ -1,7 +1,8 @@
 package com.eldritch.engine;
 
 import com.eldritch.common.*;
-import java.util.List;
+import com.eldritch.logic.Investigator;
+
 import java.util.UUID;
 
 public class ContactPhaseHandler implements EventListener {
@@ -18,7 +19,7 @@ public class ContactPhaseHandler implements EventListener {
         // Process contacts
         gameState.getInvestigators().forEach(investigator -> {
             if (hasContactOpportunity(investigator)) {
-                processContact(investigator.getId());
+                //processContact(investigator.getId());
             }
         });
 

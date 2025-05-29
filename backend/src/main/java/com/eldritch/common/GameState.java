@@ -3,7 +3,7 @@ package com.eldritch.common;
 import com.eldritch.ancientone.AncientOne;
 import com.eldritch.engine.GamePhase;
 import com.eldritch.engine.GameStateSnapshot;
-import com.eldritch.engine.Investigator;
+import com.eldritch.logic.Investigator;
 
 import java.util.List;
 import java.util.UUID;

@@ -4,6 +4,7 @@ import com.eldritch.ancientone.AncientOne;
 import com.eldritch.common.Card;
 import com.eldritch.common.Location;
 import com.eldritch.common.Monster;
+import com.eldritch.logic.Investigator;
 
 import java.io.Serializable;
 import java.util.List;

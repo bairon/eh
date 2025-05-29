@@ -3,7 +3,7 @@ package com.eldritch.common;
 import com.eldritch.ancientone.AncientOne;
 import com.eldritch.engine.GamePhase;
 import com.eldritch.engine.GameStateSnapshot;
-import com.eldritch.engine.Investigator;
+import com.eldritch.logic.Investigator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -110,7 +110,7 @@ public class PersistentGameState implements GameState {
     public void addInvestigator(Investigator investigator) {
         writeLock.lock();
         try {
-            investigators.put(investigator.getId(), investigator);
+            //investigators.put(investigator.getId(), investigator);
             //saveState();
         } finally {
             writeLock.unlock();
@@ -256,7 +256,7 @@ public class PersistentGameState implements GameState {
 
         Investigator investigator = investigators.get(investigatorId);
         if (investigator != null) {
-            investigator.setLocationId(locationId);
+            //investigator.setLocationId(locationId);
             logger.debug("Investigator {} moved to location {}", investigatorId, locationId);
         } else {
             logger.warn("Attempted to move non-existent investigator: {}", investigatorId);
@@ -274,7 +274,7 @@ public class PersistentGameState implements GameState {
 
         Investigator investigator = investigators.get(investigatorId);
         if (investigator != null) {
-            investigator.setSanity(investigator.getSanity() + delta);
+            //investigator.setSanity(investigator.getSanity() + delta);
             logger.debug("Investigator {} sanity changed by {}", investigatorId, delta);
         } else {
             logger.warn("Attempted to change sanity for non-existent investigator: {}", investigatorId);
@@ -292,7 +292,7 @@ public class PersistentGameState implements GameState {
 
         Investigator investigator = investigators.get(investigatorId);
         if (investigator != null) {
-            investigator.setHealth(investigator.getHealth() + delta);
+            //investigator.setHealth(investigator.getHealth() + delta);
             logger.debug("Investigator {} health changed by {}", investigatorId, delta);
         } else {
             logger.warn("Attempted to change health for non-existent investigator: {}", investigatorId);

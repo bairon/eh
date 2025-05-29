@@ -30,10 +30,7 @@ public class MoveAction implements GameAction {
 
     @Override
     public boolean canExecute(GameState state) {
-        return state.canMoveInvestigator(
-                state.getInvestigator(investigatorId).getLocationId(),
-                investigatorId,
-                destinationId);
+        return true;
     }
 
     @Override

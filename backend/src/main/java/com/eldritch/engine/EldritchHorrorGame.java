@@ -2,6 +2,7 @@ package com.eldritch.engine;
 
 import com.eldritch.ancientone.AncientOne;
 import com.eldritch.common.*;
+import com.eldritch.logic.Investigator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,13 +16,13 @@ public class EldritchHorrorGame {
 
     public static void main(String[] args) {
         // Initialize game
-        EldritchHorrorGame game = new EldritchHorrorGame();
+        //EldritchHorrorGame game = new EldritchHorrorGame();
 
         // Start game server
         //game.getGameServer().start();
 
         // Begin game loop
-        game.startGame();
+        //game.startGame();
     }
 
     private GameServer getGameServer() {
@@ -57,21 +58,6 @@ public class EldritchHorrorGame {
     }
 
     private void initializeInvestigators() {
-        Investigator[] startingInvestigators = {
-                new Investigator("Amanda Sharpe"),
-                new Investigator("Harvey Walters"),
-                new Investigator("Michael McGlen")
-        };
-
-        for (Investigator investigator : startingInvestigators) {
-            gameState.addInvestigator(investigator);
-            // Place investigators in starting location
-            gameState.applyEvent(new InvestigatorMovedEvent(
-                    null, // System event
-                    investigator.getId(),
-                    UUID.fromString("00000000-0000-0000-0000-000000000001") // Arkham
-            ));
-        }
     }
 
     public void startGame() {
@@ -145,8 +131,8 @@ public class EldritchHorrorGame {
         }
 
         // Check if all investigators are defeated
-        boolean allDefeated = gameState.getInvestigators().stream()
-                .allMatch(inv -> inv.getHealth() <= 0 || inv.getSanity() <= 0);
+        boolean allDefeated = false;// gameState.getInvestigators().stream()
+                //.allMatch(inv -> inv.getHealth() <= 0 || inv.getSanity() <= 0);
 
         if (allDefeated) {
             logger.info("All investigators are defeated! Game over.");
@@ -169,7 +155,7 @@ public class EldritchHorrorGame {
         logger.debug("Resolving upkeep phase");
 
         // 1. Refresh investigator actions
-        gameState.getInvestigators().forEach(Investigator::resetActions);
+        //gameState.getInvestigators().forEach(Investigator::resetActions);
 
         // 2. Handle ongoing effects
         eventBus.publish(new OngoingEffectsEvent(null));

@@ -1,7 +1,7 @@
 package com.eldritch.engine;
 
 import com.eldritch.common.*;
-import com.eldritch.client.ClientConnection;
+import com.eldritch.logic.Investigator;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,8 +26,8 @@ public class ActionPhaseHandler implements EventListener {
 
         Investigator current = getCurrentInvestigator();
         //if (current.getActions() > 0) {
-            GameAction chosenAction = requestPlayerAction(current.getId());
-            processPlayerAction(current.getId(), chosenAction);
+            //GameAction chosenAction = requestPlayerAction(current.getId());
+            //processPlayerAction(current.getId(), chosenAction);
         //} else {
             actionsProcessed++;
             handleEvent(event); // Process next investigator

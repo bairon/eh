@@ -1,17 +1,20 @@
 package com.eldritch.investigator;
 
+import com.eldritch.logic.Investigator;
 import com.eldritch.staticdata.ConfigService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 @Service
 public class InvestigatorService {
     public static final int INVESTIGATOR_SIZE = 12;
-
+    public static List<InvestigatorTemplate> investigatorsCache;
     public List<InvestigatorTemplate> getInvestigators() {
+        if (investigatorsCache != null) return investigatorsCache;
         Properties properties = ConfigService.getProperties("investigators.properties");
         List<InvestigatorTemplate> investigators = new ArrayList<>();
 
@@ -41,7 +44,20 @@ public class InvestigatorService {
                     clues, assets, spells
             ));
         }
+        investigatorsCache = investigators;
+        return investigatorsCache;
+    }
 
-        return investigators;
+    private Optional<InvestigatorTemplate> getInvestigatorTemplate(String investigatorId) {
+        return getInvestigators().stream().filter(invTemplate -> investigatorId.equals(invTemplate.getId())).findFirst();
+    }
+
+    public Investigator create(String investigatorId) {
+        Optional<InvestigatorTemplate> investigatorTemplate = getInvestigatorTemplate(investigatorId);
+        if (investigatorTemplate.isPresent()) {
+            return new Investigator(investigatorTemplate.get());
+        } else {
+            throw new RuntimeException("Wrong configuration in investigator id " + investigatorId);
+        }
     }
 }

@@ -68,7 +68,7 @@ public class EhLobby {
     public LobbyInfo info() {
         EhStatus status = EhStatus.LOBBY;
         if (server.isStarted()) {
-            status = server.getState().getStatus();
+            status = server.getStatus();
         }
         return new LobbyInfo(id,
                 agents.values().stream().map(agent -> new AgentInfo(agent.getId(), agent.getNickname(), agent.getInvestigatorId(), agent.isMaster())).toList(),
