@@ -1,5 +1,6 @@
 package com.eldritch.logic;
 
+import com.eldritch.ancientone.AncientOneService;
 import com.eldritch.game.*;
 import com.eldritch.investigator.InvestigatorService;
 import com.eldritch.lobby.EhAgent;
@@ -16,29 +17,81 @@ public class EhLogic {
     private static final Logger logger = LogManager.getLogger(EhLogic.class);
 
     @Autowired
-    private InvestigatorService investigatorService;
+    private AncientOneService ancientOneService;
 
     @Autowired
-    private PortalService portalService;
-
-    @Autowired
-    private ClueService clueService;
+    private ArtifactService artifactService;
 
     @Autowired
     private AssetService assetService;
 
     @Autowired
+    private ClueService clueService;
+
+    @Autowired
+    private ConditionService conditionService;
+
+    @Autowired
+    private InvestigatorService investigatorService;
+
+    @Autowired
+    private LocationService locationService;
+
+    @Autowired
+    private MonsterService monsterService;
+
+    @Autowired
+    private MysteryService mysteryService;
+
+    @Autowired
+    private MythosService mythosService;
+
+    @Autowired
+    private PortalService portalService;
+
+    @Autowired
     private SpellService spellService;
 
-    private final EhServer server;
+    private EhServer server;
     private final EhState state;
     private final List<EhAgent> agents;
     private Depo depo;
 
-    public EhLogic(EhServer server, EhState state, List<EhAgent> agents) {
+    public EhLogic(
+            EhServer server,
+            EhState state,
+            List<EhAgent> agents,
+            AncientOneService ancientOneService,
+            ArtifactService artifactService,
+            AssetService assetService,
+            ClueService clueService,
+            ConditionService conditionService,
+            InvestigatorService investigatorService,
+            LocationService locationService,
+            MonsterService monsterService,
+            MysteryService mysteryService,
+            MythosService mythosService,
+            PortalService portalService,
+            SpellService spellService
+    ) {
         this.server = server;
         this.state = state;
         this.agents = agents;
+
+        this.ancientOneService = ancientOneService;
+        this.artifactService = artifactService;
+        this.assetService = assetService;
+        this.clueService = clueService;
+        this.conditionService = conditionService;
+        this.investigatorService = investigatorService;
+        this.locationService = locationService;
+        this.monsterService = monsterService;
+        this.mysteryService = mysteryService;
+        this.mythosService = mythosService;
+        this.portalService = portalService;
+        this.spellService = spellService;
+
+
         this.state.setStatus(EhStatus.LOBBY);
     }
 
@@ -49,9 +102,17 @@ public class EhLogic {
                 assetService.getAssets(),
                 spellService.getSpells()
         );
+        portalService.getPortals();
+        portalService.getPortals();
+        portalService.getPortals();
+        portalService.getPortals();
+        portalService.getPortals();
+        portalService.getPortals();
+
         for (EhAgent agent : agents) {
             addInvestigator(agent.getInvestigatorId());
         }
+
         state.setStatus(EhStatus.ONGOING);
     }
 
@@ -60,7 +121,7 @@ public class EhLogic {
     }
 
     public int runCycle(EhState state) throws ExecutionException {
-        logger.debug("Running EH sycle");
+        logger.debug("Running EH loop");
 
         return 0;
     }
@@ -75,6 +136,10 @@ public class EhLogic {
 
     public EhState getState() {
         return state;
+    }
+
+    public void setServer(EhServer server) {
+        this.server = server;
     }
 
     public void setInvestigatorService(InvestigatorService investigatorService) {

@@ -1,14 +1,16 @@
 package com.eldritch.game;
 
 import com.eldritch.staticdata.ConfigService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
 public class SpellService {
-    private static final int SPELLS_SIZE = 20;
+    private static final int SPELLS_SIZE = 20; //ToDo move to properties
 
+    @Cacheable(value = "spells")
     public List<Spell> getSpells() {
 
         Properties props = ConfigService.getProperties("spells.properties");

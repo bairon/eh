@@ -2,6 +2,7 @@ package com.eldritch.investigator;
 
 import com.eldritch.logic.Investigator;
 import com.eldritch.staticdata.ConfigService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,9 +13,10 @@ import java.util.Properties;
 @Service
 public class InvestigatorService {
     public static final int INVESTIGATOR_SIZE = 12;
-    public static List<InvestigatorTemplate> investigatorsCache;
+
+
+    @Cacheable(value = "investigators")
     public List<InvestigatorTemplate> getInvestigators() {
-        if (investigatorsCache != null) return investigatorsCache;
         Properties properties = ConfigService.getProperties("investigators.properties");
         List<InvestigatorTemplate> investigators = new ArrayList<>();
 
@@ -44,8 +46,7 @@ public class InvestigatorService {
                     clues, assets, spells
             ));
         }
-        investigatorsCache = investigators;
-        return investigatorsCache;
+        return investigators;
     }
 
     private Optional<InvestigatorTemplate> getInvestigatorTemplate(String investigatorId) {

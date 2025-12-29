@@ -1,6 +1,7 @@
 package com.eldritch.game;
 
 import com.eldritch.staticdata.ConfigService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.Properties;
 public class LocationService {
     public static final int LOCATIONS_SIZE = 36;
 
+    @Cacheable(value = "locations")
     public List<Location> getLocations() {
         Properties properties = ConfigService.getProperties("locations.properties");
         List<Location> locations = new ArrayList<>();

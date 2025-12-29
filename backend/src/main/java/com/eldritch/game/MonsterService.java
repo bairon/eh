@@ -1,6 +1,7 @@
 package com.eldritch.game;
 
 import com.eldritch.staticdata.ConfigService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,10 +12,12 @@ import java.util.Properties;
 public class MonsterService {
     private static final int MONSTERS_COUNT = 43;
 
+    @Cacheable(value = "normal_monsters")
     public List<Monster> getNormalMonsters() {
         return loadMonsters("monsters.properties", MONSTERS_COUNT);
     }
 
+    @Cacheable(value = "epic_monsters")
     public List<Monster> getEpicMonsters() {
         return loadMonsters("monsters_epic.properties", MONSTERS_COUNT);
     }

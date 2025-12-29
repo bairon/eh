@@ -15,10 +15,10 @@ public class EhLobby {
     private EhAgent lastJoined;
     private String ancientId;
 
-    public EhLobby(SimpMessagingTemplate messagingTemplate, String gameName) {
+    public EhLobby(SimpMessagingTemplate messagingTemplate, EhServerFactory ehServerFactory, String gameName) {
         this.id = UUID.randomUUID().toString();  // Generate ID in constructor
         this.gameName = gameName;
-        this.server = new EhServer(messagingTemplate, this.id);
+        this.server = ehServerFactory.createServer(this.id);
     }
 
     // Remove setId() since ID is now final and set in constructor
@@ -77,7 +77,9 @@ public class EhLobby {
     }
 
     public void terminate() {
-        server.stopServer();
+        if (server != null) {
+            server.stopServer();
+        }
     }
 
     public void start() {

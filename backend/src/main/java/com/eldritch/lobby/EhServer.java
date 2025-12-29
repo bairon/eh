@@ -29,7 +29,6 @@ public class EhServer implements InterractionListener {
     public EhServer(SimpMessagingTemplate messagingTemplate, String lobbyId) {
         this.messagingTemplate = messagingTemplate;
         this.lobbyId = lobbyId;
-        this.ehLogic = new EhLogic(this, new EhState(), agents);
     }
 
     public synchronized EhAgent addAgent(EhAgent agent) {
@@ -42,7 +41,9 @@ public class EhServer implements InterractionListener {
     }
     public synchronized void removeAgent(String userId) {
         agents.removeIf(agent -> agent.getId().equals(userId));
-        agents.getFirst().setMaster(true);
+        if (!agents.isEmpty()) {
+            agents.getFirst().setMaster(true);
+        }
 
     }
 
@@ -82,7 +83,9 @@ public class EhServer implements InterractionListener {
     }
 
     public void stopServer() {
-        this.serverThread.interrupt();
+        if (this.serverThread != null) {
+            this.serverThread.interrupt();
+        }
     }
 
     public boolean isFinished() {
@@ -94,10 +97,14 @@ public class EhServer implements InterractionListener {
     }
 
     public boolean isStarted() {
-        return ehLogic != null;
+        return ehLogic.inProgress();
     }
 
     public EhStatus getStatus() {
         return ehLogic.getState().getStatus();
+    }
+
+    public void setEhLogic(EhLogic ehLogic) {
+        this.ehLogic = ehLogic;
     }
 }

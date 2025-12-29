@@ -21,17 +21,18 @@ public class EhLobbyManager implements ApplicationListener<ContextClosedEvent> {
     private static final Logger logger = LogManager.getLogger(EhLobbyManager.class);
 
     private final ConcurrentHashMap<String, EhLobby> activeLobbies = new ConcurrentHashMap<>();
-    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public EhLobbyManager(SimpMessagingTemplate messagingTemplate) {
-        this.messagingTemplate = messagingTemplate;
+    private final EhLobbyFactory ehLobbyFactory;
+
+
+    public EhLobbyManager(EhLobbyFactory ehLobbyFactory) {
+        this.ehLobbyFactory = ehLobbyFactory;
     }
 
     public EhLobby getLobby(String lobbyId) {
         return activeLobbies.get(lobbyId);
     }
-
     public List<LobbyInfo> list() {
         return activeLobbies.values().stream().filter(lobby -> !lobby.getServer().isStarted()).map(EhLobby::info).toList();
     }
@@ -41,7 +42,7 @@ public class EhLobbyManager implements ApplicationListener<ContextClosedEvent> {
         if (existingLobby != null) {
             return existingLobby;
         } else {
-            EhLobby lobby = new EhLobby(this.messagingTemplate, gameName);
+            EhLobby lobby = ehLobbyFactory.createLobby(gameName);
             activeLobbies.put(lobby.getId(), lobby);
             HumanAgent agent = new HumanAgent(userData);
             agent.setMaster(true);

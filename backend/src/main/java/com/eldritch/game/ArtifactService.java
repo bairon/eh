@@ -1,6 +1,7 @@
 package com.eldritch.game;
 
 import com.eldritch.staticdata.ConfigService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.Properties;
 public class ArtifactService {
     public static final int ARTIFACTS_SIZE = 14;
 
+    @Cacheable(value = "artifacts")
     public List<Artifact> getArtifacts() {
         Properties properties = ConfigService.getProperties("artifacts.properties");
         List<Artifact> artifacts = new ArrayList<>();

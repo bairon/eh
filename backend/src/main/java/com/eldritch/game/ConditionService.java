@@ -1,6 +1,7 @@
 package com.eldritch.game;
 
 import com.eldritch.staticdata.ConfigService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.Properties;
 public class ConditionService {
     public static final int CONDITIONS_SIZE = 36;
 
+
+    @Cacheable(value = "conditions")
     public List<Condition> getConditions() {
         Properties properties = ConfigService.getProperties("conditions.properties");
         List<Condition> conditions = new ArrayList<>();

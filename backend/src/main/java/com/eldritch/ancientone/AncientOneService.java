@@ -4,6 +4,7 @@ import com.eldritch.staticdata.ConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,6 +20,8 @@ public class AncientOneService {
 
     private static final Logger logger = LoggerFactory.getLogger(AncientOneService.class);
 
+
+    @Cacheable(value = "ancient_ones")
     public List<AncientOne> getAncientOnes() {
 
         Properties properties = ConfigService.getProperties("ancient_ones.properties");

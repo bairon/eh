@@ -101,8 +101,9 @@ public class EhLobbyController {
         }
 
         EhLobby lobby = lobbyManager.leave(userId);
-        if (lobby != null)
-        messagingTemplate.convertAndSend("/topic/ehlobby/" + lobby.getId(), lobby.info());
+        if (lobby != null) {
+            messagingTemplate.convertAndSend("/topic/ehlobby/" + lobby.getId(), lobby.info());
+        }
         return ResponseEntity.ok().build();
     }
 

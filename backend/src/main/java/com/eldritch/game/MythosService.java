@@ -1,6 +1,7 @@
 package com.eldritch.game;
 
 import com.eldritch.staticdata.ConfigService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,14 +14,17 @@ public class MythosService {
     private static final int GREEN_MYTHOS_COUNT = 18;
     private static final int YELLOW_MYTHOS_COUNT = 21;
 
+    @Cacheable(value = "blue_mythos")
     public List<Mythos> getBlueMythos() {
         return loadMythos("mythos_blue.properties", "blue", BLUE_MYTHOS_COUNT);
     }
 
+    @Cacheable(value = "green_mythos")
     public List<Mythos> getGreenMythos() {
         return loadMythos("mythos_green.properties", "green", GREEN_MYTHOS_COUNT);
     }
 
+    @Cacheable(value = "yellow_mythos")
     public List<Mythos> getYellowMythos() {
         return loadMythos("mythos_yellow.properties", "yellow", YELLOW_MYTHOS_COUNT);
     }
